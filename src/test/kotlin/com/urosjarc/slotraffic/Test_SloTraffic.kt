@@ -1,6 +1,5 @@
 package com.urosjarc.slotraffic
 
-import com.urosjarc.com.urosjarc.slotraffic.SloTraffic
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
@@ -9,6 +8,7 @@ class Test_SloTraffic {
 
     companion object {
         private lateinit var client: SloTraffic
+
         @JvmStatic
         @BeforeAll
         fun init() {
@@ -17,13 +17,34 @@ class Test_SloTraffic {
     }
 
     @Test
-    fun example() = runBlocking {
-        client.getCameras()
+    fun `test get cameras`(): Unit = runBlocking {
+        client.getCameras().forEach {
+            println(it)
+        }
     }
 
     @Test
-    fun main() {
-        val paths = listOf(
+    fun `test get counters`(): Unit = runBlocking {
+        client.getCounters().forEach {
+            println(it)
+        }
+    }
+
+    @Test
+    fun `test get events`(): Unit = runBlocking {
+        client.getEvents().forEach {
+            println(it)
+        }
+    }
+
+    @Test
+    fun `test get data`(): Unit = runBlocking {
+        client.getDataToFile(data="b2b.events.datexii33")
+    }
+
+    @Test
+    fun main(): Unit = runBlocking {
+        listOf(
             "b2b.alertc-ltef",
             "b2b.cameras.georss",
             "b2b.cameras.datexii33",
@@ -86,7 +107,9 @@ class Test_SloTraffic {
             "b2b.borderdelays.geojson",
             "b2b.borderdelays.json",
         ).sorted().forEach {
+
             println(it)
+
         }
     }
 }

@@ -12,9 +12,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
-
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
-    implementation("com.sun.xml.bind:jaxb-impl:4.0.3")
+    implementation("org.jsoup:jsoup:1.17.2")
 
     val ktor_version = "2.3.8"
     implementation("io.ktor:ktor-client-core:$ktor_version")
