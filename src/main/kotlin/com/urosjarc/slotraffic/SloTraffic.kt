@@ -1,6 +1,6 @@
 package com.urosjarc.com.urosjarc.slotraffic
 
-import com.urosjarc.slotraffic.domain.Cameras
+import com.urosjarc.slotraffic.domain.PredefinedLocationsPublication
 import com.urosjarc.slotraffic.exceptions.AuthException
 import com.urosjarc.slotraffic.res.AuthRes
 import io.ktor.client.*
@@ -15,9 +15,11 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import io.ktor.utils.io.jvm.javaio.*
+import jakarta.xml.bind.JAXBContext
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import javax.xml.bind.JAXBContext
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 
 class SloTraffic(
@@ -72,9 +74,10 @@ class SloTraffic(
 
     suspend fun getCameras() {
         val res = getData("b2b.cameras.datexii33")
-        val context = JAXBContext.newInstance(Cameras::class.java)
+        val context = JAXBContext.newInstance(PredefinedLocationsPublication::class.java)
+//        File("cameras.xml").writeText(res.bodyAsText())
         val inputStream = res.bodyAsChannel().toInputStream()
-        val cameras = context.createUnmarshaller().unmarshal(inputStream) as Cameras
-        println(cameras.lang)
+        val cameras = context.createUnmarshaller().unmarshal(inputStream) as PredefinedLocationsPublication
+        println(cameras)
     }
 }

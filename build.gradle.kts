@@ -11,10 +11,10 @@ repositories {
 }
 
 dependencies {
-    val jaxb_api_version = "2.3.0"
-    implementation("javax.xml.bind:jaxb-api:$jaxb_api_version")
-    implementation("org.glassfish.jaxb:jaxb-runtime:$jaxb_api_version")
-    implementation("javax.activation:javax.activation-api:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
+
+    implementation("jakarta.xml.bind:jakarta.xml.bind-api:4.0.0")
+    implementation("com.sun.xml.bind:jaxb-impl:4.0.3")
 
     val ktor_version = "2.3.8"
     implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -28,6 +28,12 @@ dependencies {
     testImplementation("org.apache.logging.log4j:log4j-slf4j-impl:2.20.0")
     testImplementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0")
 }
+sourceSets {
+    named("main") {
+        java.srcDir("src/main/kotlin")
+    }
+}
+
 
 tasks.test {
     useJUnitPlatform()

@@ -2,15 +2,23 @@ package com.urosjarc.slotraffic
 
 import com.urosjarc.com.urosjarc.slotraffic.SloTraffic
 import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
 
 class Test_SloTraffic {
+
+    companion object {
+        private lateinit var client: SloTraffic
+        @JvmStatic
+        @BeforeAll
+        fun init() {
+            this.client = SloTraffic(username = Env.USERNAME, password = Env.PASSWORD)
+        }
+    }
+
     @Test
     fun example() = runBlocking {
-
-        val st = SloTraffic(username = "jar.fmf@gmail.com", password = "051240885Nap")
-        st.getCameras()
-
+        client.getCameras()
     }
 
     @Test
