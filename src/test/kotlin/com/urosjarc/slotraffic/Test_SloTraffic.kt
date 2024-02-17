@@ -38,8 +38,19 @@ class Test_SloTraffic {
     }
 
     @Test
+    fun `test get roadworks`(): Unit = runBlocking {
+        client.getRoadWorks().forEach {
+            println(it)
+        }
+    }
+
+    @Test
+    fun `test get weather`(): Unit = runBlocking {
+       client.getWeather()
+    }
+    @Test
     fun `test get data`(): Unit = runBlocking {
-        client.getDataToFile(data="b2b.events.datexii33")
+        client.getDataToFile(data="b2b.fcd.tpeg.tfp")
     }
 
     @Test

@@ -1,7 +1,13 @@
 package com.urosjarc.slotraffic
 
 import com.urosjarc.slotraffic.domain.*
+import com.urosjarc.slotraffic.domain.traffic.TrafficConcentration
+import com.urosjarc.slotraffic.domain.traffic.TrafficHeadway
+import com.urosjarc.slotraffic.domain.traffic.TraficFlow
+import com.urosjarc.slotraffic.domain.traffic.TraficSpeed
+import com.urosjarc.slotraffic.domain.weather.*
 import com.urosjarc.slotraffic.exceptions.AuthException
+import com.urosjarc.slotraffic.exceptions.ParserException
 import com.urosjarc.slotraffic.res.AuthRes
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -28,7 +34,7 @@ class SloTraffic(
     val password: String
 ) {
 
-    private lateinit var authRes: AuthRes
+    private var authRes: AuthRes
 
     private val client = HttpClient(CIO) {
         install(HttpTimeout) {
@@ -75,7 +81,43 @@ class SloTraffic(
 
     suspend fun getDataToFile(data: String) {
         val res = getData(data)
-        File("$data.xml").writeText(res.bodyAsText())
+        File("$data").writeText(res.bodyAsText())
+    }
+
+    private suspend fun getEvents(data: String): List<Event> {
+        val res = getData(data)
+        val inputStream = res.bodyAsChannel().toInputStream()
+        val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())
+        val events = mutableListOf<Event>()
+
+        for (sit in doc.select("situation")) {
+            val commentEle = sit.selectFirst("generalPublicComment")!!
+            val locRef = sit.selectFirst("locationReference")!!
+            val index = locRef.attr("xsi:type").split(":").first()
+
+            val location = Location(
+                lat = locRef.selectFirst("$index|latitude")!!.text().toDouble(),
+                lon = locRef.selectFirst("$index|longitude")!!.text().toDouble()
+            )
+            val probability = sit.selectFirst("probabilityOfOccurrence")!!.text()
+            val severity = sit.selectFirst("severity")!!.text()
+            val startTime = sit.selectFirst("overallStartTime")!!.text()
+            val endTime = sit.selectFirst("overallEndTime")!!.text()
+            val comment = commentEle.select("value").associate { it.attribute("lang").value to it.text() }
+
+            events.add(
+                Event(
+                    location = location,
+                    probability = probability,
+                    severity = severity,
+                    startTime = startTime,
+                    endTime = endTime,
+                    comment = comment
+                )
+            )
+        }
+
+        return events
     }
 
     suspend fun getCameras(): List<Camera> {
@@ -128,6 +170,80 @@ class SloTraffic(
         return cameras
     }
 
+    suspend fun getWeather(): Weather {
+        val res = getData("b2b.weather.dars.datexii33")
+        val inputStream = res.bodyAsChannel().toInputStream()
+        val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())
+        val weather = Weather()
+
+        for (pQuantity in doc.select("physicalQuantity")) {
+            val index = doc.selectFirst("pertinentLocation")!!.attr("xsi:type").split(":").first()
+            val location = Location(
+                lat = doc.selectFirst("$index|latitude")!!.text().toDouble(),
+                lon = doc.selectFirst("$index|longitude")!!.text().toDouble()
+            )
+            val basicData = doc.selectFirst("basicData")!!
+            val type = basicData.attr("xsi:type")
+            val instant = basicData.selectFirst("timeValue")!!.text()
+
+            when (type) {
+
+                "WindInformation" -> weather.wind.add(
+                    Wind(
+                        location = location,
+                        instant = instant,
+                        height = basicData.selectFirst("windMeasurementHeight")!!.text().toInt(),
+                        speed = basicData.selectFirst("windSpeed")!!.text().toFloat(),
+                        maxSpeed = basicData.selectFirst("maximumWindSpeed")!!.text().toFloat(),
+                        direction = basicData.selectFirst("directionBearing")!!.text().toInt()
+                    )
+                )
+
+                "TemperatureInformation" -> weather.temperature.add(
+                    AirTemperature(
+                        location = location,
+                        instant = instant,
+                        air = basicData.selectFirst("airTemperature")!!.text().toFloat(),
+                        dewPoint = basicData.selectFirst("dewPointTemperature")!!.text().toFloat()
+                    )
+
+                )
+
+                "HumidityInformation" -> weather.humidity.add(
+                    AirHumidity(
+                        location = location,
+                        instant = instant,
+                        percentage = basicData.selectFirst("relativeHumidity")!!.text().toInt()
+                    )
+                )
+
+                "VisibilityInformation" -> weather.visibility.add(
+                    AirVisibility(
+                        location = location,
+                        instant = instant,
+                        distance = basicData.selectFirst("minimumVisibilityDistance")!!.text().toInt()
+                    )
+                )
+
+                "RoadSurfaceConditionInformation" -> {
+                    weather.roadSurface.add(
+                        RoadSurface(
+                            location = location,
+                            instant = instant,
+                            condition = basicData.selectFirst("weatherRelatedRoadConditionType")!!.text(),
+                            temperature = basicData.selectFirst("roadSurfaceTemperature")!!.text().toInt(),
+                            waterThickness = basicData.selectFirst("waterFilmThickness")!!.text().toFloat()
+                        )
+                    )
+                }
+
+                else -> throw ParserException("Unknown weather type info: $type")
+            }
+        }
+
+        return weather
+    }
+
     suspend fun getCounters(): List<Counter> {
 
         val res = getData("b2b.counters.datexii33")
@@ -172,38 +288,11 @@ class SloTraffic(
         return counters
     }
 
-    suspend fun getEvents(): List<Event> {
-        val res = getData("b2b.events.datexii33")
-        val inputStream = res.bodyAsChannel().toInputStream()
-        val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())
-        val events = mutableListOf<Event>()
+    suspend fun getEvents(): List<Event> = this.getEvents(data = "b2b.events.datexii33")
+    suspend fun getRoadWorks(): List<Event> = this.getEvents(data = "b2b.roadworks.datexii33")
 
-        for (sit in doc.select("situation")) {
-            val commentEle = sit.selectFirst("generalPublicComment")!!
-            val locRef = sit.selectFirst("locationReference")!!
-            val index = locRef.attr("xsi:type").split(":").first()
 
-            val lat = locRef.selectFirst("$index|latitude")!!.text().toDouble()
-            val lon = locRef.selectFirst("$index|longitude")!!.text().toDouble()
-            val probability = sit.selectFirst("probabilityOfOccurrence")!!.text()
-            val severity = sit.selectFirst("severity")!!.text()
-            val startTime = sit.selectFirst("overallStartTime")!!.text()
-            val endTime = sit.selectFirst("overallEndTime")!!.text()
-            val comment = commentEle.select("value").associate { it.attribute("lang").value to it.text() }
-
-            events.add(
-                Event(
-                    lat = lat,
-                    lon = lon,
-                    probability = probability,
-                    severity = severity,
-                    startTime = startTime,
-                    endTime = endTime,
-                    comment = comment
-                )
-            )
-        }
-
-        return events
-    }
+//    suspend fun getWeatherInfo(): List<Weather> {
+//        return listOf()
+//    }
 }

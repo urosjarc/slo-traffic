@@ -1,8 +1,7 @@
 package com.urosjarc.slotraffic.domain
 
 data class Event(
-    val lat: Double,
-    val lon: Double,
+    val location: Location,
     val probability: String,
     val severity: String,
     val startTime: String,

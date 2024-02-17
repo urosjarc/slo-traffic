@@ -1,4 +1,4 @@
-package com.urosjarc.slotraffic.domain
+package com.urosjarc.slotraffic.domain.traffic
 
 data class TraficFlow(
     val startInstant: String,
