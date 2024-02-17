@@ -1,7 +1,9 @@
 package com.urosjarc.slotraffic
 
+import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
+import java.io.File
 import kotlin.test.Test
 
 class Test_SloTraffic {
@@ -36,7 +38,12 @@ class Test_SloTraffic {
             println(it)
         }
     }
-
+    @Test
+    fun `test get rest areas`(): Unit = runBlocking {
+        client.getRestAreas().forEach {
+            println(it)
+        }
+    }
     @Test
     fun `test get roadworks`(): Unit = runBlocking {
         client.getRoadWorks().forEach {
@@ -50,11 +57,12 @@ class Test_SloTraffic {
     }
     @Test
     fun `test get data`(): Unit = runBlocking {
-        client.getDataToFile(data="b2b.fcd.tpeg.tfp")
+        client.getDataToFile(data="b2b.srti.datexii33")
     }
 
     @Test
     fun main(): Unit = runBlocking {
+        var info = ""
         listOf(
             "b2b.alertc-ltef",
             "b2b.cameras.georss",
@@ -120,7 +128,15 @@ class Test_SloTraffic {
         ).sorted().forEach {
 
             println(it)
+            try {
+                val data = client.getDataToFile(data = it)
+                info += "$it,${data.first.status},${data.second}\n"
+            } catch (e: Throwable){
+                info += "$it,FAIL,-1\n"
+            }
+
 
         }
+        File("docs/services.csv").writeText(info)
     }
 }

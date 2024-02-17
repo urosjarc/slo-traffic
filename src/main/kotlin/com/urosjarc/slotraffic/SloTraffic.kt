@@ -79,9 +79,11 @@ class SloTraffic(
         }
     }
 
-    suspend fun getDataToFile(data: String) {
+    suspend fun getDataToFile(data: String): Pair<HttpResponse,Int> {
         val res = getData(data)
-        File("$data").writeText(res.bodyAsText())
+        val text = res.bodyAsText(fallbackCharset = Charsets.ISO_8859_1)
+        File("docs/services/$data").writeText(text)
+        return Pair(res, text.length)
     }
 
     private suspend fun getEvents(data: String): List<Event> {
@@ -289,6 +291,52 @@ class SloTraffic(
     }
 
     suspend fun getEvents(): List<Event> = this.getEvents(data = "b2b.events.datexii33")
+
+    suspend fun getRestAreas(): List<RestArea> {
+        val res = getData("b2b.restareas.datexii33")
+        val inputStream = res.bodyAsChannel().toInputStream()
+        val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())
+        val restAreas = mutableListOf<RestArea>()
+
+        for (parkingTable in doc.select("parkingTable")) {
+            val ele = parkingTable.selectFirst("hierarchyElementGeneral")!!
+
+            val title = mutableMapOf<String, String>()
+            for (value in ele.select("name.values.value")) {
+                title[value.attr("lang")] = value.text()
+            }
+
+            val desc = mutableMapOf<String, String>()
+            for (value in ele.select("description.values.value")) {
+                desc[value.attr("lang")] = value.text()
+            }
+
+            val opHour = ele.selectFirst("operatingHours")!!.attr("xsi:type")
+            val index = ele.selectFirst("locationReference")!!.attr("xsi:type").split(":").first()
+            val location = Location(
+                lat = ele.selectFirst("$index|latitude")!!.text().toDouble(),
+                lon = ele.selectFirst("$index|longitude")!!.text().toDouble(),
+            )
+
+            val facilities = mutableListOf<RestArea.Facility>()
+            for (fac in ele.select("supplementalFacility")) {
+                facilities.add(RestArea.Facility.valueOf(fac.text()))
+            }
+
+            restAreas.add(
+                RestArea(
+                    location = location,
+                    title = title,
+                    description = desc,
+                    facilities = facilities,
+                    workingHours = RestArea.WorkingHours.valueOf(opHour),
+                )
+            )
+        }
+
+        return restAreas
+    }
+
     suspend fun getRoadWorks(): List<Event> = this.getEvents(data = "b2b.roadworks.datexii33")
 
 

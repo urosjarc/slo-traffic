@@ -1,0 +1,62 @@
+API,Name,Servis,Status,Vsebina
+YES,AlertC lokacijska tabela,b2b.alertc-ltef,200 OK,646972
+NOT IMPORTANT,Zastoji na meji (GeoJSON),b2b.borderdelays.geojson,200 OK,148
+NOT IMPORTANT,Zastoji na meji (JSON),b2b.borderdelays.json,200 OK,54
+YES,Cestne kamere,b2b.cameras,403 Forbidden,0
+YES,Cestne kamere (DATEX II v3.3),b2b.cameras.datexii33,200 OK,1391535
+YES,Cestne kamere (GeoJSON)	,b2b.cameras.geojson,200 OK,275714
+YES,Cestne kamere (slovenski GeoRSS),b2b.cameras.georss,403 Forbidden,0
+YES,Števci prometa,b2b.counters,200 OK,3951707
+YES,Števci prometa - lokacije (DATEX II v3.3),b2b.counters.datexii33,200 OK,23846912
+YES,Števci prometa (angleški GeoJSON),b2b.counters.geojson,403 Forbidden,0
+YES,Števci prometa (angleški GeoRSS),b2b.counters.georss,403 Forbidden,0
+NOT IMPORTANT,Spremenljiva signalizacija DARS stanje (DATEX II v2.3),b2b.dars.vms.datexii23.status,200 OK,1017007
+NOT IMPORTANT,Spremenljiva signalizacija DARS tabela lokacij (DATEX II v2.3),b2b.dars.vms.datexii23.table,200 OK,220315
+NOT IMPORTANT,Spremenljiva signalizacija DARS stanje (DATEX II v3.3),b2b.dars.vms.datexii3.status,200 OK,959034
+NOT IMPORTANT,Spremenljiva signalizacija DARS tabela lokacij (DATEX II v2.3),b2b.dars.vms.datexii3.table,200 OK,163078
+YES,Prometni dogodki,b2b.events,200 OK,246657
+YES,Prometni dogodki (DATEX II v3.3),b2b.events.datexii33,200 OK,321490
+YES,Prometni dogodki (angleški GeoJSON),b2b.events.geojson,403 Forbidden,0
+YES,Prometni dogodki (angleški GeoRSS),b2b.events.georss,403 Forbidden,0
+YES,Prometni dogodki (angleški JSON),b2b.events.json,403 Forbidden,0
+YES,Prometni dogodki (RDS-TMC),b2b.events.rdstmc,200 OK,21528
+YES,Prometni dogodki (angleški RSS),b2b.events.rss,403 Forbidden,0
+YES,Prometni dogodki (TPEG),b2b.events.tpeg,200 OK,227347
+NOT WORKING,FCD (DATEX II v3.3),b2b.fcd.datexii33,403 Forbidden,0
+UNKNOWN FORMAT,FCD (TPEG-TFP XML),b2b.fcd.tpeg.tfp,200 OK,81019
+NOT WORKING,Vozni red v GTFS,b2b.gtfs,FAIL,-1
+NOT WORKING,NeTEx vozni redi,b2b.netex,403 Forbidden,0
+NOT IMPORTANT,Prometej IDACS Stanje polnilne infrastrukture,b2b.prometej.energyInfrastructureStatusPublication,200 OK,1011962
+NOT IMPORTANT,Prometej IDACS Tabela polnilne infrastrukture,b2b.prometej.energyInfrastructureTablePublication,200 OK,4113449
+YES,Poèivališèa (DATEX II v3.3),b2b.restareas.datexii33,200 OK,399765
+YES,Poèivališèa (GeoJSON),b2b.restareas.geojson,200 OK,150134
+YES,Poèivališèa (JSON),b2b.restareas.json,200 OK,145016
+YES,Delo na cesti,b2b.roadworks,200 OK,552198
+YES,Delo na cesti (DATEX II v3.3),b2b.roadworks.datexii33,200 OK,698089
+YES,Delo na cesti (angleški GeoJSON),b2b.roadworks.geojson,403 Forbidden,0
+YES,Delo na cesti (angleški GeoRSS),b2b.roadworks.georss,403 Forbidden,0
+YES,Delo na cesti (angleški JSON),b2b.roadworks.json,403 Forbidden,0
+YES,Delo na cesti (RDS-TMC),b2b.roadworks.rdstmc,200 OK,42536
+YES,Delo na cesti (angleški RSS),b2b.roadworks.rss,403 Forbidden,0
+YES,Delo na cesti (TPEG),b2b.roadworks.tpeg,200 OK,509241
+NOT WORKING,SIRI dinamièni podatki - API,b2b.siri.api,403 Forbidden,0
+YES,Prometni dogodki - TISA SRTI (DATEX II v3.3),b2b.srti.datexii33,200 OK,260497
+NOT WORKING,TN-ITS podatki,b2b.tn-its,403 Forbidden,0
+NOT IMPORTANT,Prometej IDACS polnilna infrastruktura TPEG EMI,b2b.tpeg.emi,200 OK,3084347
+NOT IMPORTANT,DARS vremenske postaje (TPEG WEA),b2b.tpeg.wea.dars,200 OK,291960
+NOT IMPORTANT,DRSI vremenske postaje 1 (TPEG WEA),b2b.tpeg.wea.drsi,403 Forbidden,0
+NOT IMPORTANT,Prometni koledar (slovenski RSS),b2b.traffic-forecast.rss,403 Forbidden,0
+NOT IMPORTANT,Prometno poroèilo (JSON),b2b.traffic-report.json,200 OK,1725
+NOT IMPORTANT,Prometno poroèilo (RSS),b2b.traffic-report.rss,200 OK,2251
+NOT IMPORTANT,Potovalni èasi AC (DATEX II v3.3),b2b.traveltimes.promet.datexii33,200 OK,6984352
+NOT IMPORTANT,Parkirišèa za tovornjake,b2b.truckparking,200 OK,333989
+NOT IMPORTANT,Ujma 2023 (zapore cest),b2b.ujma23.geojson,200 OK,18275
+YES,DARS vremenske postaje,b2b.weather.dars,200 OK,222891
+YES,DARS vremenske postaje (DATEX II v3.3),b2b.weather.dars.datexii33,200 OK,1250275
+YES,DRSI vremenske postaje 1,b2b.weather.drsi,403 Forbidden,0
+YES,DRSI vremenske postaje 1 (DATEX II v3.3),b2b.weather.drsi1.datexii33,200 OK,334099
+YES,DRSI vremenske postaje 2 (DATEX II v3.3),b2b.weather.drsi2.datexii33,200 OK,1210851
+NOT IMPORTANT,Veter,b2b.wind,200 OK,7583
+NOT IMPORTANT,Veter (DATEX II v3.3),b2b.wind.datexii33,200 OK,27443
+NOT IMPORTANT,Veter (GeoJSON),b2b.wind.geojson,200 OK,2294
+NOT IMPORTANT,Veter (GeoRSS),b2b.wind.georss,200 OK,2270
