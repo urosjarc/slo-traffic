@@ -2,8 +2,8 @@ package com.urosjarc.slotraffic.domain
 
 data class RestArea(
     val location: Location,
-    val title: MutableMap<String, String> = mutableMapOf(),
-    val description: MutableMap<String, String> = mutableMapOf(),
+    val title: MutableMap<Lang, String> = mutableMapOf(),
+    val description: MutableMap<Lang, String> = mutableMapOf(),
     val facilities: List<Facility>,
     val workingHours: WorkingHours
 ) {

@@ -1,7 +1,9 @@
 package com.urosjarc.slotraffic.domain.traffic
 
+import kotlinx.datetime.Instant
+
 data class TraficFlow(
-    val startInstant: String,
-    val endInstant: String,
+    val startInstant: Instant,
+    val endInstant: Instant,
     val flowRate: Int
 )

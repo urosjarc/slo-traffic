@@ -1,10 +1,9 @@
 package com.urosjarc.slotraffic
 
-import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
-import java.io.File
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 class Test_SloTraffic {
 
@@ -20,123 +19,66 @@ class Test_SloTraffic {
 
     @Test
     fun `test get cameras`(): Unit = runBlocking {
-        client.getCameras().forEach {
-            println(it)
+        val data = client.getCameras()
+        assertTrue(data.isNotEmpty())
+        data.forEach {
+            assertTrue(it.imgUrl.isNotBlank())
+            assertTrue(it.title.isNotEmpty())
+            assertTrue(it.desciption.isNotEmpty())
+            assertTrue(it.group.isNotEmpty())
+            assertTrue(it.region.isNotEmpty())
         }
     }
 
     @Test
     fun `test get counters`(): Unit = runBlocking {
-        client.getCounters().forEach {
-            println(it)
-        }
+        val data = client.getCounters()
+        assertTrue(data.isNotEmpty())
     }
 
     @Test
     fun `test get events`(): Unit = runBlocking {
-        client.getEvents().forEach {
-            println(it)
+        val data = client.getEvents()
+        assertTrue(data.isNotEmpty())
+        data.forEach {
+            assertTrue(it.comment.isNotEmpty())
         }
     }
+
     @Test
     fun `test get rest areas`(): Unit = runBlocking {
-        client.getRestAreas().forEach {
-            println(it)
+        val data = client.getRestAreas()
+        assertTrue(data.isNotEmpty())
+
+        val hasTitle = mutableListOf<Boolean>()
+        val hasDesc = mutableListOf<Boolean>()
+        val hasFaci = mutableListOf<Boolean>()
+        data.forEach {
+            hasTitle.add(it.title.isNotEmpty())
+            hasDesc.add(it.description.isNotEmpty())
+            hasFaci.add(it.facilities.isNotEmpty())
         }
+        assertTrue(hasTitle.contains(true))
+        assertTrue(hasDesc.contains(true))
+        assertTrue(hasFaci.contains(true))
     }
+
     @Test
     fun `test get roadworks`(): Unit = runBlocking {
-        client.getRoadWorks().forEach {
-            println(it)
+        val data = client.getRoadWorks()
+        assertTrue(data.isNotEmpty())
+        data.forEach {
+            assertTrue(it.comment.isNotEmpty())
         }
     }
 
     @Test
     fun `test get weather`(): Unit = runBlocking {
-       client.getWeather()
-    }
-    @Test
-    fun `test get data`(): Unit = runBlocking {
-        client.getDataToFile(data="b2b.srti.datexii33")
-    }
-
-    @Test
-    fun main(): Unit = runBlocking {
-        var info = ""
-        listOf(
-            "b2b.alertc-ltef",
-            "b2b.cameras.georss",
-            "b2b.cameras.datexii33",
-            "b2b.cameras.geojson",
-            "b2b.cameras",
-            "b2b.weather.dars",
-            "b2b.weather.dars.datexii33",
-            "b2b.tpeg.wea.dars",
-            "b2b.roadworks",
-            "b2b.roadworks.geojson",
-            "b2b.roadworks.georss",
-            "b2b.roadworks.json",
-            "b2b.roadworks.rss",
-            "b2b.roadworks.datexii33",
-            "b2b.roadworks.rdstmc",
-            "b2b.roadworks.tpeg",
-            "b2b.weather.drsi",
-            "b2b.weather.drsi1.datexii33",
-            "b2b.tpeg.wea.drsi",
-            "b2b.weather.drsi2.datexii33",
-            "b2b.fcd.tpeg.tfp",
-            "b2b.fcd.datexii33",
-            "b2b.netex",
-            "b2b.truckparking",
-            "b2b.restareas.datexii33",
-            "b2b.restareas.geojson",
-            "b2b.restareas.json",
-            "b2b.traveltimes.promet.datexii33",
-            "b2b.tpeg.emi",
-            "b2b.prometej.energyInfrastructureStatusPublication",
-            "b2b.prometej.energyInfrastructureTablePublication",
-            "b2b.events",
-            "b2b.srti.datexii33",
-            "b2b.events.geojson",
-            "b2b.events.georss",
-            "b2b.events.json",
-            "b2b.events.rss",
-            "b2b.events.datexii33",
-            "b2b.events.rdstmc",
-            "b2b.events.tpeg",
-            "b2b.traffic-forecast.rss",
-            "b2b.traffic-report.json",
-            "b2b.traffic-report.rss",
-            "b2b.siri.api",
-            "b2b.dars.vms.datexii23.status",
-            "b2b.dars.vms.datexii3.status",
-            "b2b.dars.vms.datexii23.table",
-            "b2b.dars.vms.datexii3.table",
-            "b2b.counters",
-            "b2b.counters.datexii33",
-            "b2b.counters.geojson",
-            "b2b.counters.georss",
-            "b2b.tn-its",
-            "b2b.ujma23.geojson",
-            "b2b.wind",
-            "b2b.wind.datexii33",
-            "b2b.wind.geojson",
-            "b2b.wind.georss",
-            "b2b.gtfs",
-            "b2b.borderdelays.geojson",
-            "b2b.borderdelays.json",
-        ).sorted().forEach {
-
-            println(it)
-            try {
-                val data = client.getDataToFile(data = it)
-                info += "$it,${data.first.status},${data.second}\n"
-            } catch (e: Throwable){
-                info += "$it,FAIL,-1\n"
-            }
-
-
-        }
-        File("docs/services.csv").writeText(info)
+        val data = client.getWeather()
+        assertTrue(data.wind.isNotEmpty())
+        assertTrue(data.temperature.isNotEmpty())
+        assertTrue(data.humidity.isNotEmpty())
+        assertTrue(data.visibility.isNotEmpty())
+        assertTrue(data.roadSurface.isNotEmpty())
     }
 }
