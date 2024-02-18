@@ -1,10 +1,13 @@
 plugins {
+    `java-library`
     kotlin("jvm") version "1.9.21"
+    id("com.adarshr.test-logger") version "4.0.0"
+    `maven-publish`
     kotlin("plugin.serialization") version "1.9.21"
 }
 
 group = "com.urosjarc"
-version = "1.0-SNAPSHOT"
+version = "0.0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -32,10 +35,43 @@ sourceSets {
     }
 }
 
+testlogger {
+    this.setTheme("mocha")
+}
 
 tasks.test {
     useJUnitPlatform()
 }
 kotlin {
     jvmToolchain(19)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = rootProject.group as String
+            artifactId = rootProject.name
+            version = rootProject.version as String
+            from(components["java"])
+
+            pom {
+                name = "Slo. Traffic"
+                description = "Kotlin API to get Slovenian traffic and road information."
+                url = "https://github.com/urosjarc/slo-traffic"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                developers {
+                    developer {
+                        id = "urosjarc"
+                        name = "Uroš Jarc"
+                        email = "jar.fmf@gmail.com"
+                    }
+                }
+            }
+        }
+    }
 }
