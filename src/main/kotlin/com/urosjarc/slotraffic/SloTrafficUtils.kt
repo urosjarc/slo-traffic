@@ -1,8 +1,5 @@
 package com.urosjarc.slotraffic
 
-import com.urosjarc.slotraffic.domain.Event
-import com.urosjarc.slotraffic.domain.Location
-import com.urosjarc.slotraffic.domain.Weather
 import com.urosjarc.slotraffic.exceptions.AuthException
 import com.urosjarc.slotraffic.res.AuthRes
 import io.ktor.client.*
@@ -32,7 +29,7 @@ abstract class SloTrafficUtils(
 
     private val client = HttpClient(CIO) {
         install(HttpTimeout) {
-            requestTimeoutMillis = 100000
+            requestTimeoutMillis = 1000000
         }
         install(ContentNegotiation) {
             json(Json {
