@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Slo traffic</title>
+</head>
+<body>
+
+<script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"></script>
+<link href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css" rel="stylesheet"/>
+<div>
+    <button onclick="cameras()">Cameras</button>
+    <button onclick="counters()">Counters</button>
+    <button onclick="events()">Events</button>
+    <button onclick="restAreas()">RestAreas</button>
+    <button onclick="roadWork()">RoadWork</button>
+    <br>
+    <button onclick="wind()">Wind</button>
+    <button onclick="temp()">Temp</button>
+    <button onclick="humidity()">Humidity</button>
+    <button onclick="precipitation()">Precipitation</button>
+    <button onclick="visibility()">Visibility</button>
+    <button onclick="roadSurface()">RoadSurface</button>
+</div>
+
+<div id="osm-map"></div>
+<script src="index.js"></script>
+</body>
+</html>

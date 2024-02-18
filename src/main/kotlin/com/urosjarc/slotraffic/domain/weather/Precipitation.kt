@@ -5,8 +5,12 @@ import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AirHumidity(
+data class Precipitation(
     val instant: Instant,
     val location: Location,
-    val percentage: Int
-)
+    val type: Type
+) {
+    enum class Type {
+        rain, drizzle
+    }
+}

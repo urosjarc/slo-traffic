@@ -1,5 +1,8 @@
 package com.urosjarc.slotraffic.domain
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class RestArea(
     val location: Location,
     val title: MutableMap<Lang, String> = mutableMapOf(),

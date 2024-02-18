@@ -24,7 +24,7 @@ class Test_SloTraffic {
         data.forEach {
             assertTrue(it.imgUrl.isNotBlank())
             assertTrue(it.title.isNotEmpty())
-            assertTrue(it.desciption.isNotEmpty())
+            assertTrue(it.description.isNotEmpty())
             assertTrue(it.group.isNotEmpty())
             assertTrue(it.region.isNotEmpty())
         }

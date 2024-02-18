@@ -14,11 +14,13 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.parser.Parser
+import java.io.File
 
 abstract class SloTrafficUtils(
     val username: String,
@@ -41,7 +43,9 @@ abstract class SloTrafficUtils(
     }
 
     init {
-        runBlocking { authRes = login() }
+        runBlocking(Dispatchers.IO) {
+            authRes = login()
+        }
     }
 
     @OptIn(InternalAPI::class)
@@ -66,6 +70,9 @@ abstract class SloTrafficUtils(
         client.get(url("/data/$name")) { header("Authorization", "Bearer ${authRes.access_token}") }
 
     internal suspend fun getXmlData(name: String, cb: (doc: Document) -> Unit) {
+        val res0 = getData(name = name)
+        File("weather.xml").writeText(res0.bodyAsText())
+
         val res = getData(name = name)
         val inputStream = res.bodyAsChannel().toInputStream()
         val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())

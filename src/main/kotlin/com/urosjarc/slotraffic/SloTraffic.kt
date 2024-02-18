@@ -97,7 +97,7 @@ class SloTraffic(
                         location = Location(lat = lat, lon = lon),
                         imgUrl = img,
                         title = lang_to_titles,
-                        desciption = lang_to_description,
+                        description = lang_to_description,
                         group = lang_to_group,
                         region = lang_to_region
                     )
@@ -123,65 +123,70 @@ class SloTraffic(
                 val basicDataType = basicData.attr("xsi:type")
                 val instant = basicData.selectFirst("measurementOrCalculationTime")!!.text().toInstant()
 
-                try {
-                    when (basicDataType) {
+                when (basicDataType) {
 
-                        "WindInformation" -> weather.wind.add(
-                            Wind(
-                                location = location,
-                                instant = instant,
-                                height = basicData.selectFirst("windMeasurementHeight")!!.text().toInt(),
-                                speed = basicData.selectFirst("windSpeed")!!.text().toFloat(),
-                                maxSpeed = basicData.selectFirst("maximumWindSpeed")!!.text().toFloat(),
-                                direction = basicData.selectFirst("windDirectionBearing")?.text()?.toInt()
-                            )
+                    "WindInformation" -> weather.wind.add(
+                        Wind(
+                            location = location,
+                            instant = instant,
+                            height = basicData.selectFirst("windMeasurementHeight")!!.text().toInt(),
+                            speed = basicData.selectFirst("windSpeed")!!.text().toFloat(),
+                            maxSpeed = basicData.selectFirst("maximumWindSpeed")!!.text().toFloat(),
+                            direction = basicData.selectFirst("windDirectionBearing")?.text()?.toInt()
+                        )
+                    )
+
+                    "TemperatureInformation" -> weather.temperature.add(
+                        AirTemperature(
+                            location = location,
+                            instant = instant,
+                            value = basicData.selectFirst("airTemperature")!!.text().toFloat(),
+                            dewPoint = basicData.selectFirst("dewPointTemperature")!!.text().toFloat()
                         )
 
-                        "TemperatureInformation" -> weather.temperature.add(
-                            AirTemperature(
+                    )
+
+                    "HumidityInformation" -> weather.humidity.add(
+                        AirHumidity(
+                            location = location,
+                            instant = instant,
+                            percentage = basicData.selectFirst("relativeHumidity")!!.text().toInt()
+                        )
+                    )
+
+                    "VisibilityInformation" -> weather.visibility.add(
+                        AirVisibility(
+                            location = location,
+                            instant = instant,
+                            distance = basicData.selectFirst("minimumVisibilityDistance")!!.text().toInt()
+                        )
+                    )
+
+                    "RoadSurfaceConditionInformation" -> {
+                        weather.roadSurface.add(
+                            RoadSurface(
                                 location = location,
                                 instant = instant,
-                                value = basicData.selectFirst("airTemperature")!!.text().toFloat(),
-                                dewPoint = basicData.selectFirst("dewPointTemperature")!!.text().toFloat()
-                            )
-
-                        )
-
-                        "HumidityInformation" -> weather.humidity.add(
-                            AirHumidity(
-                                location = location,
-                                instant = instant,
-                                percentage = basicData.selectFirst("relativeHumidity")!!.text().toInt()
+                                condition = RoadSurface.Condition.valueOf(basicData.selectFirst("weatherRelatedRoadConditionType")!!.text()),
+                                temperature = basicData.selectFirst("roadSurfaceTemperature")!!.text().toFloat(),
+                                waterThickness = basicData.selectFirst("waterFilmThickness")?.text()?.toFloat()
                             )
                         )
-
-                        "VisibilityInformation" -> weather.visibility.add(
-                            AirVisibility(
-                                location = location,
-                                instant = instant,
-                                distance = basicData.selectFirst("minimumVisibilityDistance")!!.text().toInt()
-                            )
-                        )
-
-                        "RoadSurfaceConditionInformation" -> {
-                            weather.roadSurface.add(
-                                RoadSurface(
-                                    location = location,
-                                    instant = instant,
-                                    condition = RoadSurface.Condition.valueOf(basicData.selectFirst("weatherRelatedRoadConditionType")!!.text()),
-                                    temperature = basicData.selectFirst("roadSurfaceTemperature")!!.text().toFloat(),
-                                    waterThickness = basicData.selectFirst("waterFilmThickness")!!.text().toFloat()
-                                )
-                            )
-                        }
-
-                        else -> throw ParserException("Unknown weather type info: $basicDataType")
                     }
-                }
-                catch (e: Throwable){
-                    println(e)
-                }
 
+                    "PrecipitationInformation" -> {
+                        weather.precipitation.add(
+                            Precipitation(
+                                location = location,
+                                instant = instant,
+                                type = Precipitation.Type.valueOf(basicData.selectFirst("precipitationType")!!.text())
+                            )
+                        )
+
+                    }
+
+                    else -> throw ParserException("Unknown weather type info: $basicDataType")
+                }
             }
         }
 
@@ -209,12 +214,12 @@ class SloTraffic(
                         ),
                         trafficSpeed = TraficSpeed(
                             instant = trafficSpeed.selectFirst("timeValue")!!.text().toInstant(),
-                            averageSpeed = trafficSpeed.selectFirst("averageVehicleSpeed")!!.text().toFloat()
+                            average = trafficSpeed.selectFirst("averageVehicleSpeed")!!.text().toFloat()
                         ),
                         trafficFlow = TraficFlow(
                             startInstant = trafficFlow.selectFirst("startOfPeriod")!!.text().toInstant(),
                             endInstant = trafficFlow.selectFirst("endOfPeriod")!!.text().toInstant(),
-                            flowRate = trafficFlow.selectFirst("vehicleFlowRate")!!.text().toInt()
+                            rate = trafficFlow.selectFirst("vehicleFlowRate")!!.text().toInt()
                         ),
                         trafficConcentration = TrafficConcentration(
                             instant = trafficConcentration.selectFirst("timeValue")!!.text().toInstant(),
