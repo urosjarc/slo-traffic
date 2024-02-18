@@ -70,9 +70,6 @@ abstract class SloTrafficUtils(
         client.get(url("/data/$name")) { header("Authorization", "Bearer ${authRes.access_token}") }
 
     internal suspend fun getXmlData(name: String, cb: (doc: Document) -> Unit) {
-        val res0 = getData(name = name)
-        File("weather.xml").writeText(res0.bodyAsText())
-
         val res = getData(name = name)
         val inputStream = res.bodyAsChannel().toInputStream()
         val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())
