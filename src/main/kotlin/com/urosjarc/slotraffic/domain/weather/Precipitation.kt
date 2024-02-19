@@ -11,6 +11,6 @@ data class Precipitation(
     val type: Type
 ) {
     enum class Type {
-        rain, drizzle
+        snow, rain, drizzle
     }
 }
