@@ -9,5 +9,5 @@ data class AirTemperature(
     val instant: Instant,
     val location: Location,
     val value: Float,
-    val dewPoint: Float
+    val dewPoint: Float?
 )

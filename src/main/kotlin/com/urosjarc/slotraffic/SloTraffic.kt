@@ -141,7 +141,7 @@ class SloTraffic(
                             location = location,
                             instant = instant,
                             value = basicData.selectFirst("airTemperature")!!.text().toFloat(),
-                            dewPoint = basicData.selectFirst("dewPointTemperature")!!.text().toFloat()
+                            dewPoint = basicData.selectFirst("dewPointTemperature")?.text()?.toFloat()
                         )
 
                     )
