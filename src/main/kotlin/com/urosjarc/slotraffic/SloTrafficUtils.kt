@@ -46,7 +46,7 @@ abstract class SloTrafficUtils(
     val client = HttpClient(CIO) {
         install(ContentNegotiation) { json(jsonModule) }
         install(HttpTimeout) {
-            requestTimeoutMillis = 5000
+            requestTimeoutMillis = 10000
         }
     }
 
