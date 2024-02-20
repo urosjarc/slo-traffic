@@ -70,9 +70,14 @@ function cameras() {
     clearMap()
     // Place line on the map
     fetch("/cameras").then(res => {
-        res.json().then(cameras => {
-            for (camera of cameras) {
-                const m = L.marker(camera.location, {title: camera.description.sl, alt: camera.imgUrl}).addTo(index).on('click', (e) => {
+        res.json().then(data => {
+            for (feature of data.features) {
+                let coords = feature.geometry.coordinates
+                let item = feature.properties.items[0]
+                const m = L.marker({
+                    lon: coords[0],
+                    lat: coords[1],
+                }, {title: item.text_slo, alt: item.image}).addTo(index).on('click', (e) => {
                     openInNewTab(e.target.options.alt)
                 });
                 markers.push(m)
@@ -82,86 +87,40 @@ function cameras() {
 
 }
 
-function weather(key, icon, title) {
+function winds() {
     clearMap()
     // Place line on the map
-    fetch("/weather").then(res => {
-        res.json().then(weathers => {
-            for (w of weathers[key]) {
-                const m = L.marker(w.location, {icon: icon(w), title: title(w)}).addTo(index)
+    fetch("/winds").then(res => {
+        res.json().then(data => {
+            for (feature of data.features) {
+                let coords = feature.geometry.coordinates
+                let props = feature.properties
+                const m = L.marker({
+                    lon: coords[0],
+                    lat: coords[1],
+                }, {title: `Hitrost ${props.burja_veter} m/s z sunki do ${props.burja_sunki} m/s`}).addTo(index)
                 markers.push(m)
             }
         })
     })
 }
 
-function wind() {
-
-    weather("wind", (data) => {
-        let icon
-        if (data.speed < 7.9) icon = greenIcon
-        else if (data.speed < 20.7) icon = orangeIcon
-        else icon = redIcon
-        return icon
-    }, (data) => `Smer ${data.direction} deg, hitrost ${data.speed} m/s z sunki do ${data.maxSpeed} m/s`)
-}
-
-function temp() {
-    weather("temperature", (data) => {
-        if (data.value < 0) return redIcon
-        else if (data.value < 15) return orangeIcon
-        else return greenIcon
-    }, (data) => `${data.value} stopinj`)
-}
-
-function humidity() {
-    weather("humidity", (data) => {
-        if (data.percentage < 50) return greenIcon
-        else if (data.percentage < 90) return orangeIcon
-        else return redIcon
-    }, (data) => `${data.percentage} %`)
-}
-
-function precipitation() {
-    weather("precipitation", (data) => blueIcon, (data) => data.type)
-}
-
-function visibility() {
-    weather("visibility", (data) => {
-        if (data.distance < 500) return redIcon
-        else if (data.distance < 1000) return orangeIcon
-        else return greenIcon
-    }, (data) => `${data.distance} metrov`)
-}
-
-function roadSurface() {
-    weather("roadSurface", (data) => {
-        if (data.condition === "wet") return redIcon
-        else if (data.condition === "dry") return greenIcon
-        else return orangeIcon
-    }, (data) => `Cesta je "${data.condition}" pri temperaturi ${data.temperature} z vodno podlago ${data.waterThickness * 1000} milimetrov`)
-}
-
-function counters() {
+function borderDelays() {
     clearMap()
     // Place line on the map
-    fetch("/counters").then(res => {
-        res.json().then(counters => {
-            for (counter of counters) {
-                const density = counter.trafficConcentration.density
-                let icon
-                if (density < 7) icon = greenIcon
-                else if (density < 14) icon = orangeIcon
-                else icon = redIcon
-                const m = L.marker(counter.location, {
-                    icon: icon,
-                    title: `Speed: ${counter.trafficSpeed.average} m/s, Density: ${density}, Flow: ${counter.trafficFlow.rate}`
-                }).addTo(index)
+    fetch("/border-delays").then(res => {
+        res.json().then(data => {
+            for (feature of data.features) {
+                let coords = feature.geometry.coordinates
+                let props = feature.properties
+                const m = L.marker({
+                    lon: coords[0],
+                    lat: coords[1],
+                }, {title: props.Description_i18n}).addTo(index)
                 markers.push(m)
             }
         })
     })
-
 
 }
 
@@ -169,10 +128,14 @@ function events() {
     clearMap()
     // Place line on the map
     fetch("/events").then(res => {
-        res.json().then(events => {
-            for (evnt of events) {
-                let icon = evnt.capacityRemaining === 0 ? redIcon : orangeIcon
-                const m = L.marker(evnt.location, {icon: icon, title: evnt.comment.sl}).addTo(index)
+        res.json().then(data => {
+            for (feature of data.features) {
+                let coords = feature.geometry.coordinates
+                let props = feature.properties
+                const m = L.marker({
+                    lon: coords[0],
+                    lat: coords[1],
+                }, {title: props.opis}).addTo(index)
                 markers.push(m)
             }
         })
@@ -183,25 +146,32 @@ function restAreas() {
     clearMap()
     // Place line on the map
     fetch("/rest-areas").then(res => {
-        res.json().then(areas => {
-            for (area of areas) {
-                const m = L.marker(area.location, {title: area.description.sl}).addTo(index)
+        res.json().then(data => {
+            for (feature of data.features) {
+                let coords = feature.geometry.coordinates
+                let props = feature.properties
+                const m = L.marker({
+                    lon: coords[0],
+                    lat: coords[1],
+                }, {title: props.Name}).addTo(index)
                 markers.push(m)
             }
         })
     })
-
-
 }
 
 function roadWork() {
     clearMap()
     // Place line on the map
     fetch("/road-work").then(res => {
-        res.json().then(events => {
-            for (evnt of events) {
-                let icon = evnt.capacityRemaining === 0 ? redIcon : orangeIcon
-                const m = L.marker(evnt.location, {icon: icon, title: evnt.comment.sl}).addTo(index)
+        res.json().then(data => {
+            for (feature of data.features) {
+                let coords = feature.geometry.coordinates
+                let props = feature.properties
+                const m = L.marker({
+                    lon: coords[0],
+                    lat: coords[1],
+                }, {title: props.opis}).addTo(index)
                 markers.push(m)
             }
         })

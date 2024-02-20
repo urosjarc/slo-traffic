@@ -1,7 +1,10 @@
 package com.urosjarc.slotraffic
 
 import com.urosjarc.slotraffic.exceptions.AuthException
+import com.urosjarc.slotraffic.exceptions.DecodingException
+import com.urosjarc.slotraffic.exceptions.ServiceException
 import com.urosjarc.slotraffic.res.AuthRes
+import com.urosjarc.slotraffic.res.GeoJson
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -13,32 +16,37 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.charsets.Charsets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import org.jsoup.Jsoup
-import org.jsoup.nodes.Document
-import org.jsoup.parser.Parser
-import java.io.File
 
 abstract class SloTrafficUtils(
     val username: String,
     val password: String
 ) {
 
-    private var authRes: AuthRes
+    var authRes: AuthRes
 
-    private val client = HttpClient(CIO) {
+    @OptIn(ExperimentalSerializationApi::class)
+    val jsonModule = Json {
+        allowSpecialFloatingPointValues = false
+        allowStructuredMapKeys = false
+        coerceInputValues = false
+        encodeDefaults = false
+        explicitNulls = true
+        ignoreUnknownKeys = false
+        isLenient = false
+        prettyPrint = true
+        useAlternativeNames = false
+        useArrayPolymorphism = false
+    }
+
+    val client = HttpClient(CIO) {
+        install(ContentNegotiation) { json(jsonModule) }
         install(HttpTimeout) {
-            requestTimeoutMillis = 1000000
-        }
-        install(ContentNegotiation) {
-            json(Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            })
+            requestTimeoutMillis = 5000
         }
     }
 
@@ -64,16 +72,25 @@ abstract class SloTrafficUtils(
         return res.body<AuthRes>()
     }
 
-    private fun url(path: String): String = "https://b2b.nap.si${path}"
+    fun url(path: String): String = "https://b2b.nap.si${path}"
 
-    internal suspend fun getData(name: String): HttpResponse =
-        client.get(url("/data/$name")) { header("Authorization", "Bearer ${authRes.access_token}") }
+    internal suspend fun getReq(name: String): HttpResponse =
+        client.get(url("/data/$name")) {
+            header("Authorization", "Bearer ${authRes.access_token}")
+        }
+    internal suspend inline fun <reified T, reified P> getGeoJson(name: String): GeoJson<T, P> {
+        val res = this.getReq(name = name)
 
-    internal suspend fun getXmlData(name: String, cb: (doc: Document) -> Unit) {
-        val res = getData(name = name)
-        val inputStream = res.bodyAsChannel().toInputStream()
-        val doc: Document = Jsoup.parse(inputStream, null, "", Parser.xmlParser())
-        cb(doc)
+        if (res.status.value !in 200..299)
+            throw ServiceException("Service unavailable: $name")
+
+        val text = res.bodyAsText(fallbackCharset = Charsets.UTF_8).removePrefix(prefix = "\uFEFF")
+
+        try {
+            return this.jsonModule.decodeFromString(text)
+        } catch (e: Throwable){
+            throw DecodingException("Could not decode service response: '$name'", cause = e)
+        }
     }
 
 }

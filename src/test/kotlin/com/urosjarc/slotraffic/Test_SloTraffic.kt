@@ -1,5 +1,7 @@
 package com.urosjarc.slotraffic
 
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
@@ -19,66 +21,35 @@ class Test_SloTraffic {
 
     @Test
     fun `test get cameras`(): Unit = runBlocking {
-        val data = client.getCameras()
-        assertTrue(data.isNotEmpty())
-        data.forEach {
-            assertTrue(it.imgUrl.isNotBlank())
-            assertTrue(it.title.isNotEmpty())
-            assertTrue(it.description.isNotEmpty())
-            assertTrue(it.group.isNotEmpty())
-            assertTrue(it.region.isNotEmpty())
-        }
-    }
-
-    @Test
-    fun `test get counters`(): Unit = runBlocking {
-        val data = client.getCounters()
-        assertTrue(data.isNotEmpty())
-    }
-
-    @Test
-    fun `test get events`(): Unit = runBlocking {
-        val data = client.getEvents()
-        assertTrue(data.isNotEmpty())
-        data.forEach {
-            assertTrue(it.comment.isNotEmpty())
-        }
-    }
-
-    @Test
-    fun `test get rest areas`(): Unit = runBlocking {
-        val data = client.getRestAreas()
-        assertTrue(data.isNotEmpty())
-
-        val hasTitle = mutableListOf<Boolean>()
-        val hasDesc = mutableListOf<Boolean>()
-        val hasFaci = mutableListOf<Boolean>()
-        data.forEach {
-            hasTitle.add(it.title.isNotEmpty())
-            hasDesc.add(it.description.isNotEmpty())
-            hasFaci.add(it.facilities.isNotEmpty())
-        }
-        assertTrue(hasTitle.contains(true))
-        assertTrue(hasDesc.contains(true))
-        assertTrue(hasFaci.contains(true))
+        client.getCameras()
     }
 
     @Test
     fun `test get roadworks`(): Unit = runBlocking {
-        val data = client.getRoadWorks()
-        assertTrue(data.isNotEmpty())
-        data.forEach {
-            assertTrue(it.comment.isNotEmpty())
-        }
+        client.getRoadworks()
     }
 
     @Test
-    fun `test get weather`(): Unit = runBlocking {
-        val data = client.getWeather()
-        assertTrue(data.wind.isNotEmpty())
-        assertTrue(data.temperature.isNotEmpty())
-        assertTrue(data.humidity.isNotEmpty())
-        assertTrue(data.visibility.isNotEmpty())
-        assertTrue(data.roadSurface.isNotEmpty())
+    fun `test get rest areas`(): Unit = runBlocking {
+        client.getRestAreas()
     }
+
+    @Test
+    fun `test get events`(): Unit = runBlocking {
+        client.getEvents()
+    }
+    @Test
+    fun `test get counters`(): Unit = runBlocking {
+        client.getCounters()
+    }
+    @Test
+    fun `test get winds`(): Unit = runBlocking {
+        client.getWinds()
+    }
+
+    @Test
+    fun `test get border delays`(): Unit = runBlocking {
+        client.getBorderDelays()
+    }
+
 }

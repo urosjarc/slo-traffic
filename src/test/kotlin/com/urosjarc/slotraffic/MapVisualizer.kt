@@ -1,6 +1,5 @@
 package com.urosjarc.slotraffic
 
-import com.urosjarc.slotraffic.domain.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -13,34 +12,13 @@ import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
-import java.util.*
-import kotlin.concurrent.schedule
 
 class MapVisualizer {
     companion object {
 
         lateinit var client: SloTraffic
-
-        var cameras = listOf<Camera>()
-        var weather = Weather()
-        var counters = listOf<Counter>()
-        var events = listOf<Event>()
-        var restAreas = listOf<RestArea>()
-        var roadWorks = listOf<Event>()
-
-        fun updateCache() {
-            runBlocking {
-                try { cameras = client.getCameras() } catch (e: Throwable) { throw e }
-                try { weather = client.getWeather()  } catch (e: Throwable) { throw e }
-                try { counters = client.getCounters() } catch (e: Throwable) { throw e }
-                try { events = client.getEvents() } catch (e: Throwable) { throw e }
-                try { restAreas = client.getRestAreas() } catch (e: Throwable) { throw e }
-                try { roadWorks = client.getRoadWorks() } catch (e: Throwable) { throw e }
-            }
-        }
 
         @JvmStatic
         fun main(args: Array<String>) {
@@ -50,9 +28,6 @@ class MapVisualizer {
                 password = Env.PASSWORD
             )
 
-            updateCache()
-
-            Timer().schedule(1000L * 60 * 60) { updateCache() }
 
             val port = System.getenv("PORT")?.toInt() ?: 8080
 
@@ -85,13 +60,13 @@ class MapVisualizer {
 
                 routing {
                     staticResources("/", "app") { default("index.html") }
-                    get("/cameras") { call.respond(cameras) }
-                    get("/weather") { call.respond(weather) }
-                    get("/counters") { call.respond(counters) }
-                    get("/events") { call.respond(events) }
-                    get("/rest-areas") { call.respond(restAreas) }
-                    get("/road-work") { call.respond(roadWorks) }
-
+                    get("/cameras") { call.respond(client.getCameras()) }
+                    get("/counters") { call.respond(client.getCounters()) }
+                    get("/events") { call.respond(client.getEvents()) }
+                    get("/rest-areas") { call.respond(client.getRestAreas()) }
+                    get("/road-work") { call.respond(client.getRoadworks()) }
+                    get("/winds") { call.respond(client.getWinds()) }
+                    get("/border-delays") { call.respond(client.getBorderDelays()) }
                 }
             }.start(wait = true)
         }
