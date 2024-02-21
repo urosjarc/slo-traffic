@@ -5,7 +5,7 @@ const polylines = [];
 const markers = [];
 
 // Height has to be set. You can do this in CSS too.
-element.style = 'height:100vh;';
+element.style = 'height:90vh;';
 
 // Create Leaflet map on map element.
 const index = L.map(element);
@@ -124,39 +124,6 @@ function borderDelays() {
 
 }
 
-let stopPlacesMap = {}
-
-function stopPlaces() {
-    clearMap()
-    // Place line on the map
-    fetch("/stop-places").then(res => {
-        res.json().then(datas => {
-            stopPlacesMap = datas
-            for (const [id, data] of Object.entries(datas)) {
-                const m = L.marker({
-                    lon: data.lon,
-                    lat: data.lat,
-                }, {title: `${data.type}: ${data.name}`}).addTo(index)
-                markers.push(m)
-            }
-        })
-    })
-
-}
-
-
-function operators() {
-    clearMap()
-    // Place line on the map
-    fetch("/operators").then(res => {
-        res.json().then(datas => {
-            console.log("Operators", datas)
-            alert(`Number of operators ${datas.length}. For data take a look in console.log!`)
-        })
-    })
-
-}
-
 function events() {
     clearMap()
     // Place line on the map
@@ -211,25 +178,37 @@ function roadWork() {
     })
 }
 
-// function fares() {
-//     clearMap()
-//     // Place line on the map
-//     fetch("/fares").then(res => {
-//         res.json().then(datas => {
-//             for (const data of datas) {
-//                 const start = stopPlacesMap[data.start.stopPlaceId]
-//                 const end = stopPlacesMap[data.end.stopPlaceId]
-//
-//                 const l = L.polyline([
-//                     {lon: start.lon, lat: start.lat},
-//                     {lon: end.lon, lat: end.lat},
-//                 ], {title: `${data.amount}EU - ${data.name}`}).addTo(index)
-//                 polylines.push(l)
-//             }
-//         })
-//     })
-//
-// }
+let operatorsMap = {}
+let stopPlacesMap = {}
+
+function operators() {
+    clearMap()
+    // Place line on the map
+    fetch("/operators").then(res => {
+        res.json().then(datas => {
+            operatorsMap = datas
+            const values = Object.values(datas)
+            console.log("Operators", values)
+            alert(`Number of operators ${values.length}. For data take a look in console.log!`)
+        })
+    })
+
+}
+
+function stopPlaces(cb) {
+    clearMap()
+    // Place line on the map
+    fetch("/stop-places").then(res => {
+        res.json().then(datas => {
+            stopPlacesMap = datas
+            for (const data of Object.values(datas)) {
+                const m = L.marker(data.vector, {title: `${data.type}: ${data.name}`}).addTo(index)
+                markers.push(m)
+            }
+        })
+    })
+
+}
 
 function timetables() {
     clearMap()
@@ -237,16 +216,18 @@ function timetables() {
     fetch("/timetables").then(res => {
         res.json().then(datas => {
             for (const data of datas) {
-
-                const line = []
-                for (const stopPoint of data.journey.stopPoints) {
-                    const stopPlace = stopPlacesMap[stopPoint.stopPlaceId]
-                    line.push({lon: stopPlace.lon, lat: stopPlace.lat},)
+                let marker = false
+                for (const link of data.journey.links) {
+                    if(link.vectors != null){
+                        const l = L.polyline(link.vectors).addTo(index)
+                        polylines.push(l)
+                        if(!marker){
+                            const m = L.marker(link.vectors[0], {title: data.name}).addTo(index)
+                            markers.push(m)
+                            marker = true
+                        }
+                    }
                 }
-
-                const l = L.polyline(line).addTo(index)
-
-                polylines.push(l)
             }
         })
     })

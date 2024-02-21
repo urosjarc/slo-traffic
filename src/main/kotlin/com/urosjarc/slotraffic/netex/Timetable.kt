@@ -5,18 +5,18 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Timetable(
-    val id: String, //ServiceJourney
+    val id: Id<Timetable>, //ServiceJourney
     val name: String,
     val transport: Transport,
-    val operating: List<DayType>, //DayType
+    val workingDays: List<DayType>, //DayType
     val journey: Journey, //ServiceJourneyPattern
-    val operatorId: String, //Operator
+    val operatorId: Id<Operator>, //Operator
     val schedule: List<Time>
 ) {
 
     @Serializable
     data class DayType(
-        val id: String, //DayType
+        val id: Id<DayType>, //DayType
         val name: String,
         val days: List<Day>?
     ) {
@@ -26,13 +26,6 @@ data class Timetable(
     }
 
     @Serializable
-    data class StopPoint(
-        val id: String, //ScheduledStopPoint
-        val stopPlaceId: String, //StopPlace
-        val quayId: String, // Quay
-    )
-
-    @Serializable
     data class Time(
         val arrival: LocalTime?,
         val departure: LocalTime?
@@ -40,7 +33,7 @@ data class Timetable(
 
     @Serializable
     data class Journey(
-        val id: String, // ServiceJourneyPattern
+        val id: Id<Journey>, // ServiceJourneyPattern
         val name: String,
         val privateCode: Int,
         val route: Route, //Route
@@ -49,37 +42,36 @@ data class Timetable(
     ) {
         @Serializable
         data class Link(
-            val id: String,//ServiceLink
+            val id: Id<Link>,//ServiceLink
             val distance: Double?,
-            val points: List<Pair<Double, Double>>?,
+            val vectors: List<Vector>?,
             val from: StopPoint, //ScheduledStopPoint
             val to: StopPoint, //ScheduledStopPoint
         )
 
         @Serializable
         data class Route(
-            val id: String, //Route
+            val id: Id<Route>, //Route
             val name: String,
             val info: Info,
             val points: List<Point> //PointOnRoute, RoutePoint
         ) {
             @Serializable
             data class Point(
-                val id: String, //RoutePoint
+                val id: Id<Point>, //RoutePoint
                 val name: String,
-                val lon: Double,
-                val lat: Double,
+                val vector: Vector,
                 val stopPoint: StopPoint //ScheduledStopPoint
             )
 
             @Serializable
             data class Info(
-                val id: String, //Line
+                val id: Id<Info>, //Line
                 val name: String,
                 val transport: Transport,
                 val publicCode: Int,
                 val privateCode: Int,
-                val operatorRef: String
+                val operatorId: Id<Operator>
             )
         }
     }

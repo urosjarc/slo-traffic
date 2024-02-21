@@ -1,11 +1,10 @@
 package com.urosjarc.slotraffic.netex
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Operator(
-    val id: String,
+    val id: Id<Operator>,
     val name: String,
     val email: String?,
     val phone: String?,

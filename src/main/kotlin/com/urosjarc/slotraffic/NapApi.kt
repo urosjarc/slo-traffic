@@ -1,10 +1,9 @@
 package com.urosjarc.slotraffic
 
-import com.urosjarc.slotraffic.exceptions.AuthException
 import com.urosjarc.slotraffic.exceptions.DecodingException
-import com.urosjarc.slotraffic.exceptions.ServiceException
-import com.urosjarc.slotraffic.res.AuthRes
+import com.urosjarc.slotraffic.exceptions.NapException
 import com.urosjarc.slotraffic.res.GeoJson
+import com.urosjarc.slotraffic.res.NapAuthRes
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -23,24 +22,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import org.w3c.dom.Document
-import org.xml.sax.InputSource
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
-import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.OutputKeys
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 
 
-abstract class SloTrafficUtils(
+class NapApi(
     val username: String,
     val password: String
 ) {
-
-    var authRes: AuthRes
+    var authRes: NapAuthRes
 
     @OptIn(ExperimentalSerializationApi::class)
     val jsonModule = Json {
@@ -69,8 +62,10 @@ abstract class SloTrafficUtils(
         }
     }
 
+    fun url(path: String): String = "https://b2b.nap.si${path}"
+
     @OptIn(InternalAPI::class)
-    private suspend fun login(): AuthRes {
+    private suspend fun login(): NapAuthRes {
         val res = client.post(url("/uc/user/token")) {
             this.body = FormDataContent(Parameters.build {
                 append("grant_type", "password")
@@ -80,12 +75,11 @@ abstract class SloTrafficUtils(
         }
 
         if (res.status.value !in 200..299)
-            throw AuthException("Could not authenticate user: $res")
+            throw NapException("Could not authenticate nap user: $res")
 
-        return res.body<AuthRes>()
+        return res.body<NapAuthRes>()
     }
 
-    fun url(path: String): String = "https://b2b.nap.si${path}"
 
     suspend inline fun <reified T, reified P> getGeoJson(name: String): GeoJson<T, P> {
         val res = client.get(url("/data/$name")) {
@@ -93,7 +87,7 @@ abstract class SloTrafficUtils(
         }
 
         if (res.status.value !in 200..299)
-            throw ServiceException("Service unavailable: $name")
+            throw NapException("Service unavailable: $name")
 
         val text = res.bodyAsText(fallbackCharset = Charsets.UTF_8).removePrefix(prefix = "\uFEFF")
 
@@ -111,7 +105,7 @@ abstract class SloTrafficUtils(
             header("Authorization", "Bearer ${authRes.access_token}")
         }.execute { res ->
             if (res.status.value !in 200..299)
-                throw ServiceException("Service unavailable: $name")
+                throw NapException("Service unavailable: $name")
 
             val channel: ByteReadChannel = res.body()
             while (!channel.isClosedForRead) {

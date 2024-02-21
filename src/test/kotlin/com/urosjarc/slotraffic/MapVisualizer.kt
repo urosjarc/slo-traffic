@@ -1,10 +1,7 @@
 package com.urosjarc.slotraffic
 
 import com.urosjarc.slotraffic.geojson.*
-import com.urosjarc.slotraffic.netex.Fare
-import com.urosjarc.slotraffic.netex.Operator
-import com.urosjarc.slotraffic.netex.StopPlace
-import com.urosjarc.slotraffic.netex.Timetable
+import com.urosjarc.slotraffic.netex.*
 import com.urosjarc.slotraffic.res.GeoJson
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
@@ -38,10 +35,10 @@ class MapVisualizer {
         lateinit var counters: GeoJson<CounterProps, CounterMeta>
         lateinit var winds: GeoJson<WindProps, WindMeta>
         lateinit var borderDelays: GeoJson<BorderDelayProps, BorderDelayMeta>
-        lateinit var stopPlaces: Map<String, StopPlace>
-        lateinit var operators: Map<String, Operator>
-        lateinit var fares: Map<String, Fare>
-        lateinit var timetables: Map<String, Timetable>
+        lateinit var stopPlaces: Map<Id<StopPlace>, StopPlace>
+        lateinit var operators: Map<Id<Operator>, Operator>
+        lateinit var fares: List<Fare>
+        lateinit var timetables: List<Timetable>
 
         fun tryExecute(cb: () -> Unit) {
             try {
@@ -69,8 +66,8 @@ class MapVisualizer {
         fun main(args: Array<String>) {
 
             client = SloTraffic(
-                username = Env.USERNAME,
-                password = Env.PASSWORD
+                napUsername = Env.USERNAME,
+                napPassword = Env.PASSWORD
             )
 
             updateCache()
@@ -115,9 +112,9 @@ class MapVisualizer {
                     get("/winds") { call.respond(winds) }
                     get("/border-delays") { call.respond(borderDelays) }
                     get("/stop-places") { call.respond(stopPlaces) }
-                    get("/operators") { call.respond(operators.values) }
-                    get("/fares") { call.respond(fares.values) }
-                    get("/timetables") { call.respond(timetables.values.toList().subList(0,300)) }
+                    get("/operators") { call.respond(operators) }
+                    get("/fares") { call.respond(fares) }
+                    get("/timetables") { call.respond(timetables.subList(0,500)) }
                 }
             }.start(wait = true)
         }

@@ -1,7 +1,6 @@
 package com.urosjarc.slotraffic
 
 import com.urosjarc.slotraffic.netex.Fare
-import com.urosjarc.slotraffic.netex.StopPlace
 import com.urosjarc.slotraffic.netex.Timetable
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
@@ -15,7 +14,7 @@ class Test_SloTraffic {
         @JvmStatic
         @BeforeAll
         fun init() {
-            this.client = SloTraffic(username = Env.USERNAME, password = Env.PASSWORD)
+            this.client = SloTraffic(napUsername = Env.USERNAME, napPassword = Env.PASSWORD)
         }
     }
 
@@ -64,14 +63,4 @@ class Test_SloTraffic {
         client.getOperators()
     }
 
-}
-
-fun main() {
-    val client = SloTraffic(username = Env.USERNAME, password = Env.PASSWORD)
-    lateinit var t : Map<String, Timetable>
-    runBlocking {
-         t = client.getTimetables()
-    }
-
-    println(t)
 }

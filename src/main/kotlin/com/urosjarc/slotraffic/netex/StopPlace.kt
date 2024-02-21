@@ -1,20 +1,17 @@
 package com.urosjarc.slotraffic.netex
 
-import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class StopPlace(
-    val id: String,
+    val id: Id<StopPlace>,
     val name: String,
-    val code: Int,
-    val lon: Double,
-    val lat: Double,
-    val addressId: String,
+    val privateCode: Int,
+    val vector: Vector,
     val country: String,
     val town: String,
     val suburb: String,
-    val transportMode: Transport,
+    val transport: Transport,
     val type: Type,
     val quays: MutableList<Quay> = mutableListOf()
 ) {
@@ -24,12 +21,10 @@ data class StopPlace(
 
     @Serializable
     data class Quay(
-        val id: String,
-        val created: Instant,
+        val id: Id<Quay>,
         val name: String,
-        val code: Int,
-        val lat: Double,
-        val lon: Double,
+        val privateCode: Int,
+        val vector: Vector,
         val covered: Covered,
         val type: Type,
     ) {

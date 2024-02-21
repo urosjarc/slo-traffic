@@ -3,253 +3,254 @@ package com.urosjarc.slotraffic
 import com.urosjarc.slotraffic.geojson.*
 import com.urosjarc.slotraffic.netex.*
 import com.urosjarc.slotraffic.res.GeoJson
-import kotlinx.datetime.toInstant
 import kotlinx.datetime.toLocalTime
 import org.jsoup.Jsoup
 import org.jsoup.parser.Parser
 
 
 class SloTraffic(
-    username: String,
-    password: String
-) : SloTrafficUtils(
-    username = username,
-    password = password
+    napUsername: String,
+    napPassword: String
 ) {
-    suspend fun getCameras(): GeoJson<CameraProps, Unit> = this.getGeoJson(name = "b2b.cameras.geojson")
-    suspend fun getRoadworks(): GeoJson<RoadworkProps, RoadworkMeta> = this.getGeoJson(name = "b2b.roadworks.geojson.sl_SI")
-    suspend fun getRestAreas(): GeoJson<RestAreaProps, Unit> = this.getGeoJson(name = "b2b.restareas.geojson")
-    suspend fun getEvents(): GeoJson<EventProps, EventMeta> = this.getGeoJson(name = "b2b.events.geojson.sl_SI")
-    suspend fun getCounters(): GeoJson<CounterProps, CounterMeta> = this.getGeoJson(name = "b2b.counters.geojson.sl_SI")
-    suspend fun getWinds(): GeoJson<WindProps, WindMeta> = this.getGeoJson(name = "b2b.wind.geojson")
-    suspend fun getBorderDelays(): GeoJson<BorderDelayProps, BorderDelayMeta> = this.getGeoJson(name = "b2b.borderdelays.geojson")
-    suspend fun getStopPlaces(): Map<String, StopPlace> {
-        val stopPlaces = mutableMapOf<String, StopPlace>()
+    val napApi = NapApi(username = napUsername, password = napPassword)
+    suspend fun getCameras(): GeoJson<CameraProps, Unit> = this.napApi.getGeoJson(name = "b2b.cameras.geojson")
+    suspend fun getRoadworks(): GeoJson<RoadworkProps, RoadworkMeta> = this.napApi.getGeoJson(name = "b2b.roadworks.geojson.sl_SI")
+    suspend fun getRestAreas(): GeoJson<RestAreaProps, Unit> = this.napApi.getGeoJson(name = "b2b.restareas.geojson")
+    suspend fun getEvents(): GeoJson<EventProps, EventMeta> = this.napApi.getGeoJson(name = "b2b.events.geojson.sl_SI")
+    suspend fun getCounters(): GeoJson<CounterProps, CounterMeta> = this.napApi.getGeoJson(name = "b2b.counters.geojson.sl_SI")
+    suspend fun getWinds(): GeoJson<WindProps, WindMeta> = this.napApi.getGeoJson(name = "b2b.wind.geojson")
+    suspend fun getBorderDelays(): GeoJson<BorderDelayProps, BorderDelayMeta> = this.napApi.getGeoJson(name = "b2b.borderdelays.geojson")
+    suspend fun getStopPlaces(): MutableMap<Id<StopPlace>, StopPlace> {
+        val id_to_stopPlace = mutableMapOf<Id<StopPlace>, StopPlace>()
 
-        this.getZipFile(name = "b2b.netex.stopplaces") { zEntry, zStream ->
+        this.napApi.getZipFile(name = "b2b.netex.stopplaces") { zEntry, zStream ->
             val xml = Jsoup.parse(zStream, null, "", Parser.xmlParser())
-            for (stopPlace in xml.select("stopPlace")) {
+            for (sp in xml.select("stopPlace")) {
 
                 /**
                  * Stop place
                  */
-                val centroid = stopPlace.selectFirst("Centroid")!!
-                val postalAddress = stopPlace.selectFirst("PostalAddress")!!
-                val sp = StopPlace(
-                    id = stopPlace.attr("id"),
-                    name = stopPlace.selectFirst("Name")!!.text(),
-                    code = stopPlace.selectFirst("PrivateCode")!!.text().toInt(),
-                    lon = centroid.selectFirst("Longitude")!!.text().toDouble(),
-                    lat = centroid.selectFirst("Latitude")!!.text().toDouble(),
-                    addressId = postalAddress.attr("id"),
+                val centroid = sp.selectFirst("Centroid")!!
+                val postalAddress = sp.selectFirst("PostalAddress")!!
+                val stopPlace = StopPlace(
+                    id = Id(sp.attr("id")),
+                    name = sp.selectFirst("Name")!!.text(),
+                    privateCode = sp.selectFirst("PrivateCode")!!.text().toInt(),
+                    vector = Vector(
+                        lon = centroid.selectFirst("Longitude")!!.text().toDouble(),
+                        lat = centroid.selectFirst("Latitude")!!.text().toDouble(),
+                    ),
                     country = postalAddress.selectFirst("CountryRef")!!.attr("ref"),
                     town = postalAddress.selectFirst("Town")!!.text(),
                     suburb = postalAddress.selectFirst("Suburb")!!.text(),
-                    transportMode = Transport.valueOf(stopPlace.selectFirst("TransportMode")!!.text()),
-                    type = StopPlace.Type.valueOf(stopPlace.selectFirst("StopPlaceType")!!.text()),
+                    transport = Transport.valueOf(sp.selectFirst("TransportMode")!!.text()),
+                    type = StopPlace.Type.valueOf(sp.selectFirst("StopPlaceType")!!.text()),
                 )
 
                 /**
                  * Quays
                  */
-                for (quay in stopPlace.select("Quay")) {
-                    val qCentroid = stopPlace.selectFirst("Centroid")!!
-                    val q = StopPlace.Quay(
-                        id = quay.attr("id"),
-                        created = quay.attr("created").toInstant(),
-                        name = quay.selectFirst("Name")!!.text(),
-                        code = quay.selectFirst("PrivateCode")!!.text().toInt(),
-                        lat = qCentroid.selectFirst("Latitude")!!.text().toDouble(),
-                        lon = qCentroid.selectFirst("Longitude")!!.text().toDouble(),
-                        covered = StopPlace.Quay.Covered.valueOf(quay.selectFirst("Covered")!!.text()),
-                        type = StopPlace.Quay.Type.valueOf(quay.selectFirst("QuayType")!!.text()),
+                for (q in sp.select("Quay")) {
+                    val qc = sp.selectFirst("Centroid")!!
+                    val quay = StopPlace.Quay(
+                        id = Id(q.attr("id")),
+                        name = q.selectFirst("Name")!!.text(),
+                        privateCode = q.selectFirst("PrivateCode")!!.text().toInt(),
+                        vector = Vector(
+                            lon = qc.selectFirst("Longitude")!!.text().toDouble(),
+                            lat = qc.selectFirst("Latitude")!!.text().toDouble(),
+                        ),
+                        covered = StopPlace.Quay.Covered.valueOf(q.selectFirst("Covered")!!.text()),
+                        type = StopPlace.Quay.Type.valueOf(q.selectFirst("QuayType")!!.text()),
                     )
-                    sp.quays.add(q)
+                    stopPlace.quays.add(quay)
                 }
 
-                stopPlaces[sp.id] = sp
+                id_to_stopPlace[stopPlace.id] = stopPlace
             }
         }
 
-        return stopPlaces
+        return id_to_stopPlace
     }
 
-    suspend fun getOperators(): Map<String, Operator> {
-        val operators = mutableMapOf<String, Operator>()
+    suspend fun getOperators(): Map<Id<Operator>, Operator> {
+        val operators = mutableMapOf<Id<Operator>, Operator>()
 
-        this.getZipFile(name = "b2b.netex.operators") { zEntry, zStream ->
+        this.napApi.getZipFile(name = "b2b.netex.operators") { zEntry, zStream ->
             val xml = Jsoup.parse(zStream, null, "", Parser.xmlParser())
-            for (operator in xml.select("Operator")) {
-                val o = Operator(
-                    id = operator.attr("id"),
-                    name = operator.selectFirst("Name")!!.text(),
-                    email = operator.selectFirst("Email")!!.text(),
-                    phone = operator.selectFirst("Phone")!!.text(),
-                    url = operator.selectFirst("Url")!!.text(),
-                    type = Operator.Type.valueOf(operator.selectFirst("OrganisationType")!!.text())
+            for (o in xml.select("Operator")) {
+                val operator = Operator(
+                    id = Id(o.attr("id")),
+                    name = o.selectFirst("Name")!!.text(),
+                    email = o.selectFirst("Email")!!.text(),
+                    phone = o.selectFirst("Phone")!!.text(),
+                    url = o.selectFirst("Url")!!.text(),
+                    type = Operator.Type.valueOf(o.selectFirst("OrganisationType")!!.text())
                 )
-                operators[o.id] = o
+                operators[operator.id] = operator
             }
         }
 
         return operators
     }
 
-    suspend fun getFares(): Map<String, Fare> {
-        val fares = mutableMapOf<String, Fare>()
+    suspend fun getFares(): List<Fare> {
+        val fares = mutableListOf<Fare>()
 
-        this.getZipFile(name = "b2b.netex.fares") { zEntry, zStream ->
+        this.napApi.getZipFile(name = "b2b.netex.fares") { zEntry, zStream ->
             val xml = Jsoup.parse(zStream, null, "", Parser.xmlParser())
 
             // Stop point to its informations
-            val stopPointId_to_fareStopPlace = mutableMapOf<String, Fare.StopPlace>()
-            for (pStopAss in xml.select("PassengerStopAssignment")) {
-                val scheduledStopPointRef = pStopAss.selectFirst("ScheduledStopPointRef")!!.attr("ref")
-                val fareStopPlace = Fare.StopPlace(
-                    stopPlaceId = pStopAss.selectFirst("StopPlaceRef")!!.attr("ref"),
-                    quayId = pStopAss.selectFirst("QuayRef")!!.attr("ref"),
+            val id_to_stopPlace = mutableMapOf<Id<StopPoint>, StopPoint>()
+            for (psa in xml.select("PassengerStopAssignment")) {
+                val stopPoint = StopPoint(
+                    id = Id(psa.selectFirst("ScheduledStopPointRef")!!.attr("ref")),
+                    stopPlaceId = Id(psa.selectFirst("StopPlaceRef")!!.attr("ref")),
+                    quayId = Id(psa.selectFirst("QuayRef")!!.attr("ref")),
                 )
-                stopPointId_to_fareStopPlace[scheduledStopPointRef] = fareStopPlace
+                id_to_stopPlace[stopPoint.id] = stopPoint
             }
 
 
             // Matrix element to price
-            val eleId_to_amount = mutableMapOf<String, Float>()
-            for (dmElePrice in xml.select("DistanceMatrixElementPrice")) {
-                val amount = dmElePrice.selectFirst("Amount")!!.text().toFloat()
-                val elementRef = dmElePrice.selectFirst("DistanceMatrixElementRef")!!.attr("ref")
-                eleId_to_amount[elementRef] = amount
+            val fareId_to_amount = mutableMapOf<Id<Fare>, Float>()
+            for (dmep in xml.select("DistanceMatrixElementPrice")) {
+                val amount = dmep.selectFirst("Amount")!!.text().toFloat()
+                val fareId = Id<Fare>(dmep.selectFirst("DistanceMatrixElementRef")!!.attr("ref"))
+                fareId_to_amount[fareId] = amount
             }
 
             // Matrix element
-            for (ele in xml.select("DistanceMatrixElement")) {
-                val id = ele.attr("id")
-                val startStopId = ele.selectFirst("StartStopPointRef")!!.attr("ref")
-                val endStopId = ele.selectFirst("EndStopPointRef")!!.attr("ref")
+            for (dme in xml.select("DistanceMatrixElement")) {
+                val fareId = Id<Fare>(dme.attr("id"))
+                val startStopId = Id<StopPoint>(dme.selectFirst("StartStopPointRef")!!.attr("ref"))
+                val endStopId = Id<StopPoint>(dme.selectFirst("EndStopPointRef")!!.attr("ref"))
                 val fare = Fare(
-                    id = id,
-                    name = ele.selectFirst("Name")!!.text(),
-                    start = stopPointId_to_fareStopPlace[startStopId]!!,
-                    end = stopPointId_to_fareStopPlace[endStopId]!!,
-                    amount = eleId_to_amount[id]!!
+                    id = fareId,
+                    name = dme.selectFirst("Name")!!.text(),
+                    start = id_to_stopPlace[startStopId]!!,
+                    end = id_to_stopPlace[endStopId]!!,
+                    amount = fareId_to_amount[fareId]!!
                 )
-                fares[fare.id] = fare
+                fares.add(fare)
             }
         }
 
         return fares
     }
 
-    suspend fun getTimetables(): Map<String, Timetable> {
-        val timetables = mutableMapOf<String, Timetable>()
+    suspend fun getTimetables(): List<Timetable> {
+        val timetables = mutableListOf<Timetable>()
 
-        this.getZipFile(name = "b2b.netex.lines") { zEntry, zStream ->
+        this.napApi.getZipFile(name = "b2b.netex.lines") { zEntry, zStream ->
             val xml = Jsoup.parse(zStream, null, "", Parser.xmlParser())
 
             // DayTypes
-            val dayTypeId_to_day = mutableMapOf<String, Timetable.DayType>()
-            for (dayType in xml.select("DayType")) {
-                val d = Timetable.DayType(
-                    id = dayType.attr("id"),
-                    name = dayType.selectFirst("Name")!!.text(),
-                    days = dayType.selectFirst("DaysOfWeek")?.text()?.split(" ")?.map { Timetable.DayType.Day.valueOf(it) }
+            val id_to_dayType = mutableMapOf<Id<Timetable.DayType>, Timetable.DayType>()
+            for (dt in xml.select("DayType")) {
+                val dayType = Timetable.DayType(
+                    id = Id(dt.attr("id")),
+                    name = dt.selectFirst("Name")!!.text(),
+                    days = dt.selectFirst("DaysOfWeek")?.text()?.split(" ")?.map { Timetable.DayType.Day.valueOf(it) }
                 )
-                dayTypeId_to_day[d.id] = d
+                id_to_dayType[dayType.id] = dayType
             }
 
             // Stop point to its informations
-            val scheduledStopPointId_to_scheduledStopPoint = mutableMapOf<String, Timetable.StopPoint>()
-            for (pStopAss in xml.select("PassengerStopAssignment")) {
-                val s = Timetable.StopPoint(
-                    id = pStopAss.selectFirst("ScheduledStopPointRef")!!.attr("ref"),
-                    stopPlaceId = pStopAss.selectFirst("StopPlaceRef")!!.attr("ref"),
-                    quayId = pStopAss.selectFirst("QuayRef")!!.attr("ref"),
+            val id_to_stopPoint = mutableMapOf<Id<StopPoint>, StopPoint>()
+            for (psa in xml.select("PassengerStopAssignment")) {
+                val stopPoint = StopPoint(
+                    id = Id(psa.selectFirst("ScheduledStopPointRef")!!.attr("ref")),
+                    stopPlaceId = Id(psa.selectFirst("StopPlaceRef")!!.attr("ref")),
+                    quayId = Id(psa.selectFirst("QuayRef")!!.attr("ref")),
                 )
-                scheduledStopPointId_to_scheduledStopPoint[s.id] = s
+                id_to_stopPoint[stopPoint.id] = stopPoint
             }
 
             // ServiceLinks
-            val serviceLinkId_to_serviceLink = mutableMapOf<String, Timetable.Journey.Link>()
-            for (serviceLink in xml.select("ServiceLink")) {
-                val sl = Timetable.Journey.Link(
-                    id = serviceLink.attr("id"),
-                    distance = serviceLink.selectFirst("Distance")?.text()?.toDouble(),
-                    points = serviceLink.selectFirst("LineString")?.children()?.map {
+            val id_to_serviceLink = mutableMapOf<Id<Timetable.Journey.Link>, Timetable.Journey.Link>()
+            for (sl in xml.select("ServiceLink")) {
+                val link = Timetable.Journey.Link(
+                    id = Id(sl.attr("id")),
+                    distance = sl.selectFirst("Distance")?.text()?.toDouble(),
+                    vectors = sl.selectFirst("LineString")?.children()?.map {
                         val c = it.text().split(" ")
-                        c.first().toDouble() to c.last().toDouble()
+                        Vector(
+                            lon = c.first().toDouble(),
+                            lat = c.last().toDouble()
+                        )
                     },
-                    from = scheduledStopPointId_to_scheduledStopPoint[serviceLink.selectFirst("FromPointRef")!!.attr("ref")]!!,
-                    to = scheduledStopPointId_to_scheduledStopPoint[serviceLink.selectFirst("ToPointRef")!!.attr("ref")]!!,
+                    from = id_to_stopPoint[Id(sl.selectFirst("FromPointRef")!!.attr("ref"))]!!,
+                    to = id_to_stopPoint[Id(sl.selectFirst("ToPointRef")!!.attr("ref"))]!!,
                 )
-                serviceLinkId_to_serviceLink[sl.id] = sl
+                id_to_serviceLink[link.id] = link
             }
 
             // Line
-            val lineId_to_line = mutableMapOf<String, Timetable.Journey.Route.Info>()
-            for (line in xml.select("Line")) {
-                val l = Timetable.Journey.Route.Info(
-                    id = line.attr("id"),
-                    name = line.selectFirst("Name")!!.text(),
-                    transport = Transport.valueOf(line.selectFirst("TransportMode")!!.text()),
-                    publicCode = line.selectFirst("PublicCode")!!.text().toInt(),
-                    privateCode = line.selectFirst("PrivateCode")!!.text().toInt(),
-                    operatorRef = line.selectFirst("OperatorRef")!!.attr("ref")
+            val id_to_routeInfo = mutableMapOf<Id<Timetable.Journey.Route.Info>, Timetable.Journey.Route.Info>()
+            for (l in xml.select("Line")) {
+                val routeInfo = Timetable.Journey.Route.Info(
+                    id = Id(l.attr("id")),
+                    name = l.selectFirst("Name")!!.text(),
+                    transport = Transport.valueOf(l.selectFirst("TransportMode")!!.text()),
+                    publicCode = l.selectFirst("PublicCode")!!.text().toInt(),
+                    privateCode = l.selectFirst("PrivateCode")!!.text().toInt(),
+                    operatorId = Id(l.selectFirst("OperatorRef")!!.attr("ref"))
                 )
-                lineId_to_line[l.id] = l
+                id_to_routeInfo[routeInfo.id] = routeInfo
             }
 
             // Routepoints
-            val routePointId_to_routePoint = mutableMapOf<String, Timetable.Journey.Route.Point>()
-            for (routePoint in xml.select("RoutePoint")) {
-                val rp = Timetable.Journey.Route.Point(
-                    id = routePoint.attr("id"),
-                    name = routePoint.selectFirst("Name")!!.text(),
-                    lat = routePoint.selectFirst("Latitude")!!.text().toDouble(),
-                    lon = routePoint.selectFirst("Longitude")!!.text().toDouble(),
-                    stopPoint = scheduledStopPointId_to_scheduledStopPoint[routePoint.selectFirst("ProjectToPointRef")!!.attr("ref")]!!
+            val id_to_routePoint = mutableMapOf<Id<Timetable.Journey.Route.Point>, Timetable.Journey.Route.Point>()
+            for (rp in xml.select("RoutePoint")) {
+                val routePoint = Timetable.Journey.Route.Point(
+                    id = Id(rp.attr("id")),
+                    name = rp.selectFirst("Name")!!.text(),
+                    vector = Vector(
+                        lat = rp.selectFirst("Latitude")!!.text().toDouble(),
+                        lon = rp.selectFirst("Longitude")!!.text().toDouble(),
+                    ),
+                    stopPoint = id_to_stopPoint[Id(rp.selectFirst("ProjectToPointRef")!!.attr("ref"))]!!
                 )
-                routePointId_to_routePoint[rp.id] = rp
+                id_to_routePoint[routePoint.id] = routePoint
             }
 
             // Route
-            val routeId_to_route = mutableMapOf<String, Timetable.Journey.Route>()
-            for (route in xml.select("Route")) {
-                val lineId = route.selectFirst("LineRef")!!.attr("ref")
-                val r = Timetable.Journey.Route(
-                    id = route.attr("id"),
-                    name = route.selectFirst("Name")!!.text(),
-                    info = lineId_to_line[lineId]!!,
-                    points = route.select("RoutePointRef").map { routePointId_to_routePoint[it.attr("ref")]!! }
+            val id_to_route = mutableMapOf<Id<Timetable.Journey.Route>, Timetable.Journey.Route>()
+            for (r in xml.select("Route")) {
+                val route = Timetable.Journey.Route(
+                    id = Id(r.attr("id")),
+                    name = r.selectFirst("Name")!!.text(),
+                    info = id_to_routeInfo[Id(r.selectFirst("LineRef")!!.attr("ref"))]!!,
+                    points = r.select("RoutePointRef").map { id_to_routePoint[Id(it.attr("ref"))]!! }
                 )
-                routeId_to_route[r.id] = r
+                id_to_route[route.id] = route
             }
 
             // ServiceJourneyPattern
-            val serviceJourneyPatternId_to_serviceJourneyPattern = mutableMapOf<String, Timetable.Journey>()
+            val id_to_journey = mutableMapOf<Id<Timetable.Journey>, Timetable.Journey>()
             for (sjp in xml.select("ServiceJourneyPattern")) {
-                val routeId = sjp.selectFirst("RouteRef")!!.attr("ref")
-                val s = Timetable.Journey(
-                    id = sjp.attr("id"),
+                val journey = Timetable.Journey(
+                    id = Id(sjp.attr("id")),
                     name = sjp.selectFirst("Name")!!.text(),
                     privateCode = sjp.selectFirst("PrivateCode")!!.text().toInt(),
-                    route = routeId_to_route[routeId]!!,
-                    stopPoints = sjp.select("ScheduledStopPointRef").map { scheduledStopPointId_to_scheduledStopPoint[it.attr("ref")]!! },
-                    links = sjp.select("ServiceLinkRef").map { serviceLinkId_to_serviceLink[it.attr("ref")]!! }
+                    route = id_to_route[Id(sjp.selectFirst("RouteRef")!!.attr("ref"))]!!,
+                    stopPoints = sjp.select("ScheduledStopPointRef").map { id_to_stopPoint[Id(it.attr("ref"))]!! },
+                    links = sjp.select("ServiceLinkRef").map { id_to_serviceLink[Id(it.attr("ref"))]!! }
                 )
-                serviceJourneyPatternId_to_serviceJourneyPattern[s.id] = s
+                id_to_journey[journey.id] = journey
             }
 
 
             // ServiceJourneyPattern
             for (sj in xml.select("ServiceJourney")) {
-                val serviceJourneyPatternId = sj.selectFirst("ServiceJourneyPatternRef")!!.attr("ref")
                 val s = Timetable(
-                    id = sj.attr("id"),
+                    id = Id(sj.attr("id")),
                     name = sj.selectFirst("Name")!!.text(),
                     transport = Transport.valueOf(sj.selectFirst("TransportMode")!!.text()),
-                    operating = sj.select("DayTypeRef").map { dayTypeId_to_day[it.attr("ref")]!! },
-                    journey = serviceJourneyPatternId_to_serviceJourneyPattern[serviceJourneyPatternId]!!,
-                    operatorId = sj.selectFirst("OperatorRef")!!.attr("ref"),
+                    workingDays = sj.select("DayTypeRef").map { id_to_dayType[Id(it.attr("ref"))]!! },
+                    journey = id_to_journey[Id(sj.selectFirst("ServiceJourneyPatternRef")!!.attr("ref"))]!!,
+                    operatorId = Id(sj.selectFirst("OperatorRef")!!.attr("ref")),
                     schedule = sj.select("TimetabledPassingTime").map {
                         Timetable.Time(
                             arrival = it.selectFirst("ArrivalTime")?.text()?.toLocalTime(),
@@ -258,7 +259,7 @@ class SloTraffic(
                     }
                 )
 
-                timetables[s.id] = s
+                timetables.add(s)
             }
         }
 
