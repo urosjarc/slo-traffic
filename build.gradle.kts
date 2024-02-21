@@ -24,6 +24,7 @@ repositories {
 dependencies {
     val ktor_version = "2.3.8"
 
+    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.4.0")
     implementation("org.jsoup:jsoup:1.17.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.8.0-RC2")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")

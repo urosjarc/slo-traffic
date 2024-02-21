@@ -1,11 +1,11 @@
 package com.urosjarc.slotraffic
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import com.urosjarc.slotraffic.netex.Fare
+import com.urosjarc.slotraffic.netex.StopPlace
+import com.urosjarc.slotraffic.netex.Timetable
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 class Test_SloTraffic {
 
@@ -38,10 +38,12 @@ class Test_SloTraffic {
     fun `test get events`(): Unit = runBlocking {
         client.getEvents()
     }
+
     @Test
     fun `test get counters`(): Unit = runBlocking {
         client.getCounters()
     }
+
     @Test
     fun `test get winds`(): Unit = runBlocking {
         client.getWinds()
@@ -52,4 +54,24 @@ class Test_SloTraffic {
         client.getBorderDelays()
     }
 
+    @Test
+    fun `test get stop places`(): Unit = runBlocking {
+        client.getStopPlaces()
+    }
+
+    @Test
+    fun `test get operators`(): Unit = runBlocking {
+        client.getOperators()
+    }
+
+}
+
+fun main() {
+    val client = SloTraffic(username = Env.USERNAME, password = Env.PASSWORD)
+    lateinit var t : Map<String, Timetable>
+    runBlocking {
+         t = client.getTimetables()
+    }
+
+    println(t)
 }

@@ -16,11 +16,24 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.*
-import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import org.w3c.dom.Document
+import org.xml.sax.InputSource
+import java.io.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+
 
 abstract class SloTrafficUtils(
     val username: String,
@@ -74,12 +87,10 @@ abstract class SloTrafficUtils(
 
     fun url(path: String): String = "https://b2b.nap.si${path}"
 
-    internal suspend fun getReq(name: String): HttpResponse =
-        client.get(url("/data/$name")) {
+    suspend inline fun <reified T, reified P> getGeoJson(name: String): GeoJson<T, P> {
+        val res = client.get(url("/data/$name")) {
             header("Authorization", "Bearer ${authRes.access_token}")
         }
-    internal suspend inline fun <reified T, reified P> getGeoJson(name: String): GeoJson<T, P> {
-        val res = this.getReq(name = name)
 
         if (res.status.value !in 200..299)
             throw ServiceException("Service unavailable: $name")
@@ -88,9 +99,44 @@ abstract class SloTrafficUtils(
 
         try {
             return this.jsonModule.decodeFromString(text)
-        } catch (e: Throwable){
+        } catch (e: Throwable) {
             throw DecodingException("Could not decode service response: '$name'", cause = e)
         }
     }
 
+    suspend fun getBigFile(name: String): MutableList<Byte> {
+        val payload = mutableListOf<Byte>()
+        var bytesCount = 0.0
+        client.prepareGet(url("/data/$name")) {
+            header("Authorization", "Bearer ${authRes.access_token}")
+        }.execute { res ->
+            if (res.status.value !in 200..299)
+                throw ServiceException("Service unavailable: $name")
+
+            val channel: ByteReadChannel = res.body()
+            while (!channel.isClosedForRead) {
+                val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                while (!packet.isEmpty) {
+                    val bytes: ByteArray = packet.readBytes()
+                    payload.addAll(bytes.toList())
+                    bytesCount += bytes.size
+                }
+            }
+        }
+
+        return payload
+    }
+
+    suspend fun getZipFile(name: String, onZipEntry: (zEntry: ZipEntry, inStream: InputStream) -> Unit) {
+        val bytes = this.getBigFile(name = name)
+        val inZipStream = ByteArrayInputStream(bytes.toByteArray())
+        val zStream = ZipInputStream(inZipStream)
+        while (true) {
+            val zEntry = zStream.nextEntry ?: break
+            val outStream = ByteArrayOutputStream()
+            zStream.copyTo(outStream)
+            val inStream = ByteArrayInputStream(outStream.toByteArray())
+            onZipEntry(zEntry, inStream)
+        }
+    }
 }

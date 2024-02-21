@@ -124,6 +124,39 @@ function borderDelays() {
 
 }
 
+let stopPlacesMap = {}
+
+function stopPlaces() {
+    clearMap()
+    // Place line on the map
+    fetch("/stop-places").then(res => {
+        res.json().then(datas => {
+            stopPlacesMap = datas
+            for (const [id, data] of Object.entries(datas)) {
+                const m = L.marker({
+                    lon: data.lon,
+                    lat: data.lat,
+                }, {title: `${data.type}: ${data.name}`}).addTo(index)
+                markers.push(m)
+            }
+        })
+    })
+
+}
+
+
+function operators() {
+    clearMap()
+    // Place line on the map
+    fetch("/operators").then(res => {
+        res.json().then(datas => {
+            console.log("Operators", datas)
+            alert(`Number of operators ${datas.length}. For data take a look in console.log!`)
+        })
+    })
+
+}
+
 function events() {
     clearMap()
     // Place line on the map
@@ -176,4 +209,46 @@ function roadWork() {
             }
         })
     })
+}
+
+// function fares() {
+//     clearMap()
+//     // Place line on the map
+//     fetch("/fares").then(res => {
+//         res.json().then(datas => {
+//             for (const data of datas) {
+//                 const start = stopPlacesMap[data.start.stopPlaceId]
+//                 const end = stopPlacesMap[data.end.stopPlaceId]
+//
+//                 const l = L.polyline([
+//                     {lon: start.lon, lat: start.lat},
+//                     {lon: end.lon, lat: end.lat},
+//                 ], {title: `${data.amount}EU - ${data.name}`}).addTo(index)
+//                 polylines.push(l)
+//             }
+//         })
+//     })
+//
+// }
+
+function timetables() {
+    clearMap()
+    // Place line on the map
+    fetch("/timetables").then(res => {
+        res.json().then(datas => {
+            for (const data of datas) {
+
+                const line = []
+                for (const stopPoint of data.journey.stopPoints) {
+                    const stopPlace = stopPlacesMap[stopPoint.stopPlaceId]
+                    line.push({lon: stopPlace.lon, lat: stopPlace.lat},)
+                }
+
+                const l = L.polyline(line).addTo(index)
+
+                polylines.push(l)
+            }
+        })
+    })
+
 }

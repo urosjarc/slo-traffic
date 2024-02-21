@@ -1,7 +1,6 @@
-package com.urosjarc.slotraffic.domain
+package com.urosjarc.slotraffic.geojson
 
 import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
 
