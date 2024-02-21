@@ -23,6 +23,9 @@ repositories {
 
 dependencies {
     val ktor_version = "2.3.8"
+    implementation("org.entur:netex-parser-java:3.1.10")
+    implementation("org.entur:netex-java-model:2.0.15")
+    implementation("io.github.threeten-jaxb:threeten-jaxb-core:2.1.0")
 
     implementation("org.apache.logging.log4j:log4j-api-kotlin:1.4.0")
     implementation("org.jsoup:jsoup:1.17.2")
@@ -53,7 +56,7 @@ tasks.test {
     useJUnitPlatform()
 }
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(9)
 }
 
 tasks.withType<ShadowJar> {
