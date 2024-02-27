@@ -22,8 +22,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import org.entur.netex.NetexParser
-import org.entur.netex.index.api.NetexEntitiesIndex
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
@@ -100,20 +98,20 @@ class NapApi(
         }
     }
 
-    suspend fun getNetex(name: String, onIndex: (index: Any) -> Unit) {
-        val bytes = this.getBigFile(name = name)
-        val inZipStream = ByteArrayInputStream(bytes.toByteArray())
-        val zStream = ZipInputStream(inZipStream)
-        val parser = NetexParser()
-        while (true) {
-            zStream.nextEntry ?: break
-            val outStream = ByteArrayOutputStream()
-            zStream.copyTo(outStream)
-            val inStream = ByteArrayInputStream(outStream.toByteArray())
-            val index: NetexEntitiesIndex = parser.parse(inStream)
-            onIndex(index)
-        }
-    }
+//    suspend fun getNetex(name: String, onIndex: (index: Any) -> Unit) {
+//        val bytes = this.getBigFile(name = name)
+//        val inZipStream = ByteArrayInputStream(bytes.toByteArray())
+//        val zStream = ZipInputStream(inZipStream)
+//        val parser = NetexParser()
+//        while (true) {
+//            zStream.nextEntry ?: break
+//            val outStream = ByteArrayOutputStream()
+//            zStream.copyTo(outStream)
+//            val inStream = ByteArrayInputStream(outStream.toByteArray())
+//            val index: NetexEntitiesIndex = parser.parse(inStream)
+//            onIndex(index)
+//        }
+//    }
 
     suspend fun getBigFile(name: String): MutableList<Byte> {
         val payload = mutableListOf<Byte>()

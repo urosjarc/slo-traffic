@@ -1,7 +1,6 @@
 package com.urosjarc.slotraffic
 
 import kotlinx.coroutines.runBlocking
-import org.entur.netex.index.api.NetexEntitiesIndex
 import org.junit.jupiter.api.BeforeAll
 import kotlin.test.Test
 

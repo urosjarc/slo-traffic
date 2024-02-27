@@ -70,8 +70,7 @@ class MapVisualizer {
                 napPassword = Env.PASSWORD
             )
 
-            updateCache()
-            Timer().schedule(1000L * 60 * 15) { updateCache() }
+            Timer().schedule(1000L * 15, 1000L * 60 * 15) { updateCache() }
 
             val port = System.getenv("PORT")?.toInt() ?: 8080
 
